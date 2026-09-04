@@ -8,7 +8,16 @@ The frontend will be a React and TypeScript dashboard application built with Vit
 
 ## Backend API
 
-The backend will be a Java 25 Spring Boot REST API. It will use Maven for builds and dependency management, Spring Web for HTTP APIs, Spring Data JPA and Hibernate for persistence, and Spring Validation for request and domain validation.
+The backend API foundation is implemented under `apps/api` as a Java 25 Spring Boot application built with Maven.
+
+The current backend includes:
+
+- Spring Boot application entry point in package `com.sih.supplychain`
+- Spring MVC web support
+- Minimal health endpoint at `GET /api/health`
+- Automated tests for application startup and the health endpoint
+
+Persistence, validation-heavy domain logic, security, and business APIs are not implemented yet.
 
 ## Database
 
