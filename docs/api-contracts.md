@@ -1,6 +1,6 @@
 # API Contracts
 
-Phase 5A defines the planned operational REST API contract. Controllers, DTO classes, global exception handling, OpenAPI configuration, authentication, and frontend integration are intentionally not implemented yet.
+The operational REST API contract is implemented for suppliers, materials, products, supplier-material relationships, product BOM entries, and inventory. OpenAPI configuration, authentication, and frontend integration are intentionally not implemented yet.
 
 The API will use `/api/...` paths for the current SIH project scope. JPA entities must not be exposed directly from controllers.
 
@@ -13,7 +13,7 @@ The API will use `/api/...` paths for the current SIH project scope. JPA entitie
 - `ProductMaterialService`: add material to product BOM, get BOM entry by ID, list product BOM, find products using material, update BOM entry, remove BOM entry.
 - `InventoryService`: create inventory, get by ID, list by material, get by material and warehouse, list all, update, adjust stock.
 
-No service correctness changes are required before REST design. The next implementation phase should introduce DTOs, mappers, controllers, and controller advice above these services.
+REST controllers use DTOs, explicit mapping, and global exception handling above these services.
 
 ## Shared HTTP Semantics
 
@@ -189,15 +189,15 @@ Validation expectations:
 | `GET` | `/api/inventory/{id}` | Get inventory by ID. | None | `InventoryResponse` | `200` | `404`, `500` |
 | `GET` | `/api/materials/{materialId}/inventory` | View inventory records for a material. | None | `List<InventoryResponse>` | `200` | `404`, `500` |
 | `GET` | `/api/materials/{materialId}/inventory/{warehouseLocation}` | View inventory for material and warehouse. | None | `InventoryResponse` | `200` | `404`, `500` |
-| `POST` | `/api/materials/{materialId}/inventory` | Create inventory record for material. | `InventoryCreateRequest` | `InventoryResponse` | `201` | `400`, `404`, `409`, `500` |
+| `POST` | `/api/inventory` | Create inventory record for material. | `InventoryCreateRequest` | `InventoryResponse` | `201` | `400`, `404`, `409`, `500` |
 | `PUT` | `/api/inventory/{id}` | Update inventory planning/quantity fields. | `InventoryUpdateRequest` | `InventoryResponse` | `200` | `400`, `404`, `500` |
-| `POST` | `/api/inventory/{id}/adjustments` | Adjust stock by a positive or negative delta. | `InventoryAdjustmentRequest` | `InventoryResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/inventory/{id}/adjust` | Adjust stock by a positive or negative delta. | `InventoryAdjustmentRequest` | `InventoryResponse` | `200` | `400`, `404`, `500` |
 
 DTO design:
 
-- `InventoryCreateRequest`: `warehouseLocation`, `quantityOnHand`, `quantityReserved`, `quantityIncoming`, `safetyStock`, `reorderPoint`. Material comes from the URI.
+- `InventoryCreateRequest`: `materialId`, `warehouseLocation`, `quantityOnHand`, `quantityReserved`, `quantityIncoming`, `safetyStock`, `reorderPoint`.
 - `InventoryUpdateRequest`: `quantityOnHand`, `quantityReserved`, `quantityIncoming`, `safetyStock`, `reorderPoint`. Material and warehouse are not changed through update.
-- `InventoryAdjustmentRequest`: `adjustment`, optional `reason` for future audit support. Only `adjustment` is used by the current service layer design.
+- `InventoryAdjustmentRequest`: `quantityChange`.
 - `InventoryResponse`: `id`, `material` summary, `warehouseLocation`, `quantityOnHand`, `quantityReserved`, `quantityIncoming`, `safetyStock`, `reorderPoint`, `lastUpdated`.
 
 Validation expectations:

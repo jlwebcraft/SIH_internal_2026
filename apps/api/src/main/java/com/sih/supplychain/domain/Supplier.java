@@ -214,4 +214,12 @@ public class Supplier {
     public Set<SupplierPerformance> getPerformanceEntries() {
         return performanceEntries;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 }

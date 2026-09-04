@@ -53,6 +53,10 @@ public class ProductMaterial {
         this.quantityRequired = quantityRequired;
     }
 
+    public ProductMaterial(BigDecimal quantityRequired) {
+        this.quantityRequired = quantityRequired;
+    }
+
     public Long getId() {
         return id;
     }

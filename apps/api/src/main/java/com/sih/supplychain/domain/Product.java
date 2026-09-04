@@ -155,4 +155,12 @@ public class Product {
     public Set<CustomerOrderItem> getCustomerOrderItems() {
         return customerOrderItems;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 }

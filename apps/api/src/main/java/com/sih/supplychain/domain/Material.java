@@ -206,4 +206,12 @@ public class Material {
     public Set<PurchaseOrderItem> getPurchaseOrderItems() {
         return purchaseOrderItems;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 }

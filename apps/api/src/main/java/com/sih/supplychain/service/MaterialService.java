@@ -63,6 +63,16 @@ public class MaterialService {
         return this.materialRepository.findAll();
     }
 
+    public List<Material> getMaterialsByStatus(String status) {
+        BusinessValidation.requireText(status, "Material status");
+        return this.materialRepository.findByStatus(status);
+    }
+
+    public List<Material> getMaterialsByCriticality(String criticality) {
+        BusinessValidation.requireText(criticality, "Material criticality");
+        return this.materialRepository.findByCriticality(criticality);
+    }
+
     @Transactional
     public Material updateMaterial(Long id, Material changes) {
         Material material = getMaterialById(id);

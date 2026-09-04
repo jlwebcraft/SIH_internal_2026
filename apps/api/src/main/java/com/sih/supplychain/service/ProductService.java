@@ -59,6 +59,11 @@ public class ProductService {
         return this.productRepository.findAll();
     }
 
+    public List<Product> getProductsByStatus(String status) {
+        BusinessValidation.requireText(status, "Product status");
+        return this.productRepository.findByStatus(status);
+    }
+
     @Transactional
     public Product updateProduct(Long id, Product changes) {
         Product product = getProductById(id);

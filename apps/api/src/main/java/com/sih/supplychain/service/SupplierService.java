@@ -59,6 +59,11 @@ public class SupplierService {
         return this.supplierRepository.findAll();
     }
 
+    public List<Supplier> getSuppliersByStatus(String status) {
+        BusinessValidation.requireText(status, "Supplier status");
+        return this.supplierRepository.findByStatus(status);
+    }
+
     @Transactional
     public Supplier updateSupplier(Long id, Supplier changes) {
         Supplier supplier = getSupplierById(id);

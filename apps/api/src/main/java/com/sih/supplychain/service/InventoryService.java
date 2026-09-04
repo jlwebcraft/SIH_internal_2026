@@ -48,6 +48,11 @@ public class InventoryService {
         return this.inventoryRepository.findByMaterialId(materialId);
     }
 
+    public List<Inventory> getInventoryByWarehouseLocation(String warehouseLocation) {
+        BusinessValidation.requireText(warehouseLocation, "Warehouse location");
+        return this.inventoryRepository.findByWarehouseLocation(warehouseLocation);
+    }
+
     public Inventory getInventoryByMaterialAndWarehouse(Long materialId, String warehouseLocation) {
         BusinessValidation.requireText(warehouseLocation, "Warehouse location");
         return this.inventoryRepository.findByMaterialIdAndWarehouseLocation(materialId, warehouseLocation)
@@ -61,7 +66,7 @@ public class InventoryService {
     @Transactional
     public Inventory updateInventory(Long id, Inventory changes) {
         Inventory inventory = getInventoryById(id);
-        validateInventory(changes);
+        validateInventoryQuantities(changes);
         applyMutableFields(inventory, changes);
         return this.inventoryRepository.save(inventory);
     }
@@ -92,6 +97,17 @@ public class InventoryService {
             throw new InvalidBusinessStateException("Inventory details are required");
         }
         BusinessValidation.requireText(inventory.getWarehouseLocation(), "Warehouse location");
+        BusinessValidation.requireNonNegative(inventory.getQuantityOnHand(), "Inventory quantity on hand");
+        BusinessValidation.requireNonNegative(inventory.getQuantityReserved(), "Inventory quantity reserved");
+        BusinessValidation.requireNonNegative(inventory.getQuantityIncoming(), "Inventory quantity incoming");
+        BusinessValidation.requireNonNegative(inventory.getSafetyStock(), "Inventory safety stock");
+        BusinessValidation.requireNonNegative(inventory.getReorderPoint(), "Inventory reorder point");
+    }
+
+    private void validateInventoryQuantities(Inventory inventory) {
+        if (inventory == null) {
+            throw new InvalidBusinessStateException("Inventory details are required");
+        }
         BusinessValidation.requireNonNegative(inventory.getQuantityOnHand(), "Inventory quantity on hand");
         BusinessValidation.requireNonNegative(inventory.getQuantityReserved(), "Inventory quantity reserved");
         BusinessValidation.requireNonNegative(inventory.getQuantityIncoming(), "Inventory quantity incoming");

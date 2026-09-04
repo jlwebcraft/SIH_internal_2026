@@ -71,6 +71,10 @@ public class SupplierMaterial {
         this.material = material;
     }
 
+    public SupplierMaterial(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
     public Long getId() {
         return id;
     }
@@ -129,5 +133,13 @@ public class SupplierMaterial {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
     }
 }

@@ -63,6 +63,10 @@ public class Inventory {
         this.warehouseLocation = warehouseLocation;
     }
 
+    public Inventory(String warehouseLocation) {
+        this.warehouseLocation = warehouseLocation;
+    }
+
     public Long getId() {
         return id;
     }
@@ -113,5 +117,9 @@ public class Inventory {
 
     public void setReorderPoint(BigDecimal reorderPoint) {
         this.reorderPoint = reorderPoint;
+    }
+
+    public Instant getLastUpdated() {
+        return lastUpdated;
     }
 }
