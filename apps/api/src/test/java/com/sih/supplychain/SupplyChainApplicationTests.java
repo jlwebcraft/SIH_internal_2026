@@ -13,7 +13,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.datasource.url=jdbc:postgresql://localhost:5432/supply_chain_db",
+        "spring.datasource.username=test_user",
+        "spring.datasource.password=test_password",
+        "spring.flyway.enabled=false",
+        "spring.datasource.hikari.initialization-fail-timeout=-1",
+        "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
+        "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
+        "spring.jpa.hibernate.ddl-auto=none"
+})
 @AutoConfigureMockMvc
 class SupplyChainApplicationTests {
 

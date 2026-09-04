@@ -14,14 +14,18 @@ The current backend includes:
 
 - Spring Boot application entry point in package `com.sih.supplychain`
 - Spring MVC web support
+- Spring Data JPA and Hibernate configured for PostgreSQL
+- PostgreSQL datasource configuration using environment variables
+- Flyway configured to run PostgreSQL migrations from `infra/database/migrations`
+- Operational supply-chain JPA entities for suppliers, materials, products, inventory, orders, deliveries, and supplier performance
 - Minimal health endpoint at `GET /api/health`
 - Automated tests for application startup and the health endpoint
 
-Persistence, validation-heavy domain logic, security, and business APIs are not implemented yet.
+Persistence dependencies, entity mappings, and the initial operational schema migration are present, but repositories, validation-heavy domain logic, security, and business APIs are not implemented yet.
 
 ## Database
 
-PostgreSQL will be the initial relational database. Database schema design and migrations will be handled in a later backend/database phase.
+PostgreSQL is the initial relational database. The initial operational schema is managed by Flyway migration `V1__create_operational_schema.sql`.
 
 ## ML Service
 

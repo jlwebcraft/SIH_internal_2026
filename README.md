@@ -23,4 +23,18 @@ The project is organized as a monorepo with separate areas for the frontend, bac
 
 ## Current Development Phase
 
-This repository is currently in the project foundation phase. The monorepo structure and planning documents are being prepared before any application features, database schema, authentication, Firebase integration, or ML models are implemented.
+This repository is currently in the operational domain model phase. The Spring Boot API foundation, PostgreSQL/JPA configuration, Flyway migration setup, and initial operational entity mappings are in place without implementing business services, REST CRUD APIs, authentication, Firebase integration, frontend functionality, or ML models.
+
+## Local Backend Database Configuration
+
+The backend reads PostgreSQL connection settings from OS or shell environment variables through Spring Boot property placeholders:
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+
+Use `.env.example` as a placeholder reference only. Do not commit real credentials.
+
+This project does not currently auto-load `.env` files.
