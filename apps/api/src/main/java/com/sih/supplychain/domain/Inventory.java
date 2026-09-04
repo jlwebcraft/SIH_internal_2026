@@ -82,4 +82,36 @@ public class Inventory {
     public void setQuantityOnHand(BigDecimal quantityOnHand) {
         this.quantityOnHand = quantityOnHand;
     }
+
+    public BigDecimal getQuantityReserved() {
+        return quantityReserved;
+    }
+
+    public void setQuantityReserved(BigDecimal quantityReserved) {
+        this.quantityReserved = quantityReserved;
+    }
+
+    public BigDecimal getQuantityIncoming() {
+        return quantityIncoming;
+    }
+
+    public void setQuantityIncoming(BigDecimal quantityIncoming) {
+        this.quantityIncoming = quantityIncoming;
+    }
+
+    public BigDecimal getSafetyStock() {
+        return safetyStock;
+    }
+
+    public void setSafetyStock(BigDecimal safetyStock) {
+        this.safetyStock = safetyStock;
+    }
+
+    public BigDecimal getReorderPoint() {
+        return reorderPoint;
+    }
+
+    public void setReorderPoint(BigDecimal reorderPoint) {
+        this.reorderPoint = reorderPoint;
+    }
 }

@@ -13,4 +13,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     List<Inventory> findByWarehouseLocation(String warehouseLocation);
 
     Optional<Inventory> findByMaterialIdAndWarehouseLocation(Long materialId, String warehouseLocation);
+
+    boolean existsByMaterialId(Long materialId);
+
+    boolean existsByMaterialIdAndWarehouseLocation(Long materialId, String warehouseLocation);
 }

@@ -10,4 +10,6 @@ public interface CustomerOrderItemRepository extends JpaRepository<CustomerOrder
     List<CustomerOrderItem> findByCustomerOrderId(Long customerOrderId);
 
     List<CustomerOrderItem> findByProductId(Long productId);
+
+    boolean existsByProductId(Long productId);
 }

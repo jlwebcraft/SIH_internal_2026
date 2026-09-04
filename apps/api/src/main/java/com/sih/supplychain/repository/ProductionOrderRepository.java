@@ -13,4 +13,6 @@ public interface ProductionOrderRepository extends JpaRepository<ProductionOrder
     List<ProductionOrder> findByProductId(Long productId);
 
     List<ProductionOrder> findByStatus(String status);
+
+    boolean existsByProductId(Long productId);
 }

@@ -10,4 +10,6 @@ public interface SupplierPerformanceRepository extends JpaRepository<SupplierPer
     List<SupplierPerformance> findBySupplierId(Long supplierId);
 
     List<SupplierPerformance> findBySupplierIdOrderByEvaluationDateDesc(Long supplierId);
+
+    boolean existsBySupplierId(Long supplierId);
 }

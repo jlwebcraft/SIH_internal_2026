@@ -10,4 +10,6 @@ public interface PurchaseOrderItemRepository extends JpaRepository<PurchaseOrder
     List<PurchaseOrderItem> findByPurchaseOrderId(Long purchaseOrderId);
 
     List<PurchaseOrderItem> findByMaterialId(Long materialId);
+
+    boolean existsByMaterialId(Long materialId);
 }

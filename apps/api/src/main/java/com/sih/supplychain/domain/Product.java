@@ -96,11 +96,63 @@ public class Product {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public BigDecimal getUnitCost() {
+        return unitCost;
+    }
+
+    public void setUnitCost(BigDecimal unitCost) {
+        this.unitCost = unitCost;
+    }
+
+    public BigDecimal getSellingPrice() {
+        return sellingPrice;
+    }
+
+    public void setSellingPrice(BigDecimal sellingPrice) {
+        this.sellingPrice = sellingPrice;
+    }
+
+    public BigDecimal getProductionTimeHours() {
+        return productionTimeHours;
+    }
+
+    public void setProductionTimeHours(BigDecimal productionTimeHours) {
+        this.productionTimeHours = productionTimeHours;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Set<ProductMaterial> getProductMaterials() {
+        return productMaterials;
+    }
+
+    public Set<ProductionOrder> getProductionOrders() {
+        return productionOrders;
+    }
+
+    public Set<CustomerOrderItem> getCustomerOrderItems() {
+        return customerOrderItems;
     }
 }

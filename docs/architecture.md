@@ -19,14 +19,19 @@ The current backend includes:
 - Flyway configured to run PostgreSQL migrations from `infra/database/migrations`
 - Operational supply-chain JPA entities for suppliers, materials, products, inventory, orders, deliveries, and supplier performance
 - Spring Data JPA repositories for operational persistence access
+- Core service layer for supplier, material, BOM, and inventory business rules
 - Minimal health endpoint at `GET /api/health`
 - Automated tests for application startup and the health endpoint
 
-Persistence dependencies, entity mappings, Flyway migrations, and repository interfaces are present, but validation-heavy domain logic, security, business services, and business APIs are not implemented yet.
+Persistence dependencies, entity mappings, Flyway migrations, repository interfaces, and initial business services are present, but security, REST business APIs, and advanced domain workflows are not implemented yet.
+
+The current service layer owns business invariants such as duplicate business identifiers, required referenced entities, non-negative operational quantities, valid BOM quantities, safe deletes, and inventory adjustment checks. REST controllers and DTO validation will be added in a later phase.
 
 ## Database
 
 PostgreSQL is the initial relational database. Operational schema changes are managed by Flyway migrations in `infra/database/migrations`.
+
+Inventory stock adjustment is currently protected by transactional service validation, but advanced concurrency control is not implemented yet. Locking strategy will be revisited when transactional API workflows are introduced.
 
 ## ML Service
 

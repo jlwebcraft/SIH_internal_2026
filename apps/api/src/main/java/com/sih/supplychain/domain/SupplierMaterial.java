@@ -82,4 +82,52 @@ public class SupplierMaterial {
     public Material getMaterial() {
         return material;
     }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public Integer getLeadTimeDays() {
+        return leadTimeDays;
+    }
+
+    public void setLeadTimeDays(Integer leadTimeDays) {
+        this.leadTimeDays = leadTimeDays;
+    }
+
+    public BigDecimal getMinimumOrderQuantity() {
+        return minimumOrderQuantity;
+    }
+
+    public void setMinimumOrderQuantity(BigDecimal minimumOrderQuantity) {
+        this.minimumOrderQuantity = minimumOrderQuantity;
+    }
+
+    public BigDecimal getMaximumCapacity() {
+        return maximumCapacity;
+    }
+
+    public void setMaximumCapacity(BigDecimal maximumCapacity) {
+        this.maximumCapacity = maximumCapacity;
+    }
+
+    public BigDecimal getReliabilityScore() {
+        return reliabilityScore;
+    }
+
+    public void setReliabilityScore(BigDecimal reliabilityScore) {
+        this.reliabilityScore = reliabilityScore;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

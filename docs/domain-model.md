@@ -1,6 +1,6 @@
 # Domain Model
 
-The operational domain model is implemented as JPA entities, PostgreSQL Flyway migrations, and Spring Data JPA repositories.
+The operational domain model is implemented as JPA entities, PostgreSQL Flyway migrations, Spring Data JPA repositories, and core business services.
 
 ## Implemented Tables And Entities
 
@@ -53,4 +53,5 @@ The operational domain model is implemented as JPA entities, PostgreSQL Flyway m
 - The Java entity is named `User`, but the database table is named `users` to avoid PostgreSQL reserved-word friction.
 - Status, priority, and criticality fields are stored as strings in this phase. Allowed values will be formalized when business workflows are implemented.
 - Repository interfaces use Spring Data JPA derived queries for simple lookup paths. Business rules stay out of repositories.
+- Core services enforce current business invariants. REST controllers, DTOs, global exception handling, and API error contracts are intentionally deferred.
 - No prediction, risk scoring, recommendation, simulation, alert, authentication, Firebase, or ML entities are implemented yet.

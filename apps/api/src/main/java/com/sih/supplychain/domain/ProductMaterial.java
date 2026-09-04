@@ -68,4 +68,24 @@ public class ProductMaterial {
     public BigDecimal getQuantityRequired() {
         return quantityRequired;
     }
+
+    public void setQuantityRequired(BigDecimal quantityRequired) {
+        this.quantityRequired = quantityRequired;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public BigDecimal getWastagePercentage() {
+        return wastagePercentage;
+    }
+
+    public void setWastagePercentage(BigDecimal wastagePercentage) {
+        this.wastagePercentage = wastagePercentage;
+    }
 }

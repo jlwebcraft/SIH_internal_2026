@@ -111,6 +111,38 @@ public class Material {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public BigDecimal getUnitCost() {
+        return unitCost;
+    }
+
+    public void setUnitCost(BigDecimal unitCost) {
+        this.unitCost = unitCost;
+    }
+
     public String getCriticality() {
         return criticality;
     }
@@ -125,5 +157,53 @@ public class Material {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public BigDecimal getCurrentStock() {
+        return currentStock;
+    }
+
+    public void setCurrentStock(BigDecimal currentStock) {
+        this.currentStock = currentStock;
+    }
+
+    public BigDecimal getSafetyStock() {
+        return safetyStock;
+    }
+
+    public void setSafetyStock(BigDecimal safetyStock) {
+        this.safetyStock = safetyStock;
+    }
+
+    public BigDecimal getReorderPoint() {
+        return reorderPoint;
+    }
+
+    public void setReorderPoint(BigDecimal reorderPoint) {
+        this.reorderPoint = reorderPoint;
+    }
+
+    public BigDecimal getDailyConsumption() {
+        return dailyConsumption;
+    }
+
+    public void setDailyConsumption(BigDecimal dailyConsumption) {
+        this.dailyConsumption = dailyConsumption;
+    }
+
+    public Set<SupplierMaterial> getSupplierMaterials() {
+        return supplierMaterials;
+    }
+
+    public Set<ProductMaterial> getProductMaterials() {
+        return productMaterials;
+    }
+
+    public Set<Inventory> getInventories() {
+        return inventories;
+    }
+
+    public Set<PurchaseOrderItem> getPurchaseOrderItems() {
+        return purchaseOrderItems;
     }
 }

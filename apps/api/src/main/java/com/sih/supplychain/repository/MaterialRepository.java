@@ -13,4 +13,6 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
     List<Material> findByStatus(String status);
 
     List<Material> findByCriticality(String criticality);
+
+    boolean existsByCode(String code);
 }
