@@ -1,31 +1,43 @@
-### IntelliJ IDEA ###
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-.kotlin
-.idea
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.local
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# Node / React
+node_modules/
+dist/
+build/
+coverage/
+.vite/
 
-### VS Code ###
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# IntelliJ IDEA and other IDEs
+.idea/
+*.iml
 .vscode/
+.classpath
+.project
+.settings/
 
-### Mac OS ###
+# OS files
 .DS_Store
+Thumbs.db
