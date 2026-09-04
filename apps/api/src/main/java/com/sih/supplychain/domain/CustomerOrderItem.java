@@ -41,7 +41,25 @@ public class CustomerOrderItem {
     protected CustomerOrderItem() {
     }
 
+    public CustomerOrderItem(CustomerOrder customerOrder, Product product, BigDecimal quantity) {
+        this.customerOrder = customerOrder;
+        this.product = product;
+        this.quantity = quantity;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public CustomerOrder getCustomerOrder() {
+        return customerOrder;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public BigDecimal getQuantity() {
+        return quantity;
     }
 }

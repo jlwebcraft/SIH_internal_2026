@@ -50,7 +50,20 @@ public class Delivery {
     protected Delivery() {
     }
 
+    public Delivery(PurchaseOrder purchaseOrder, String trackingNumber) {
+        this.purchaseOrder = purchaseOrder;
+        this.trackingNumber = trackingNumber;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public PurchaseOrder getPurchaseOrder() {
+        return purchaseOrder;
+    }
+
+    public String getTrackingNumber() {
+        return trackingNumber;
     }
 }

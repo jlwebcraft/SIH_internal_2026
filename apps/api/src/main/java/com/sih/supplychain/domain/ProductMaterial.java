@@ -47,7 +47,25 @@ public class ProductMaterial {
     protected ProductMaterial() {
     }
 
+    public ProductMaterial(Product product, Material material, BigDecimal quantityRequired) {
+        this.product = product;
+        this.material = material;
+        this.quantityRequired = quantityRequired;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    public BigDecimal getQuantityRequired() {
+        return quantityRequired;
     }
 }

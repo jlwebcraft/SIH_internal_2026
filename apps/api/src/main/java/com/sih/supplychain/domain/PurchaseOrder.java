@@ -12,6 +12,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -56,9 +58,11 @@ public class PurchaseOrder {
     private User createdBy;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "purchaseOrder", fetch = FetchType.LAZY)
@@ -70,7 +74,32 @@ public class PurchaseOrder {
     protected PurchaseOrder() {
     }
 
+    public PurchaseOrder(String poNumber, Supplier supplier) {
+        this.poNumber = poNumber;
+        this.supplier = supplier;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public String getPoNumber() {
+        return poNumber;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Set<PurchaseOrderItem> getItems() {
+        return items;
     }
 }

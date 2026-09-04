@@ -60,7 +60,28 @@ public class SupplierPerformance {
     protected SupplierPerformance() {
     }
 
+    public SupplierPerformance(Supplier supplier, LocalDate evaluationDate) {
+        this.supplier = supplier;
+        this.evaluationDate = evaluationDate;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public LocalDate getEvaluationDate() {
+        return evaluationDate;
+    }
+
+    public BigDecimal getOverallScore() {
+        return overallScore;
+    }
+
+    public void setOverallScore(BigDecimal overallScore) {
+        this.overallScore = overallScore;
     }
 }

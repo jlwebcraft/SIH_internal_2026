@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -51,12 +52,34 @@ public class Inventory {
     private BigDecimal reorderPoint;
 
     @Column(name = "last_updated")
+    @UpdateTimestamp
     private Instant lastUpdated;
 
     protected Inventory() {
     }
 
+    public Inventory(Material material, String warehouseLocation) {
+        this.material = material;
+        this.warehouseLocation = warehouseLocation;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    public String getWarehouseLocation() {
+        return warehouseLocation;
+    }
+
+    public BigDecimal getQuantityOnHand() {
+        return quantityOnHand;
+    }
+
+    public void setQuantityOnHand(BigDecimal quantityOnHand) {
+        this.quantityOnHand = quantityOnHand;
     }
 }

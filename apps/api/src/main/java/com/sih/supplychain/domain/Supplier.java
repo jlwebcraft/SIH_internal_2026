@@ -11,6 +11,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -69,9 +71,11 @@ public class Supplier {
     private String status;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
@@ -84,6 +88,11 @@ public class Supplier {
     private Set<SupplierPerformance> performanceEntries = new LinkedHashSet<>();
 
     protected Supplier() {
+    }
+
+    public Supplier(String name, String code) {
+        this.name = name;
+        this.code = code;
     }
 
     public Long getId() {
@@ -104,5 +113,13 @@ public class Supplier {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

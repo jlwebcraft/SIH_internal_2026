@@ -13,6 +13,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.LinkedHashSet;
@@ -44,9 +46,11 @@ public class User {
     private boolean active = true;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
@@ -56,6 +60,12 @@ public class User {
     private Set<ProductionOrder> productionOrders = new LinkedHashSet<>();
 
     protected User() {
+    }
+
+    public User(String name, String email, Role role) {
+        this.name = name;
+        this.email = email;
+        this.role = role;
     }
 
     public Long getId() {

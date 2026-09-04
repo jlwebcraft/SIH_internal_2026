@@ -61,7 +61,33 @@ public class ProductionOrder {
     protected ProductionOrder() {
     }
 
+    public ProductionOrder(String productionNumber, Product product, BigDecimal quantity) {
+        this.productionNumber = productionNumber;
+        this.product = product;
+        this.quantity = quantity;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public String getProductionNumber() {
+        return productionNumber;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public BigDecimal getQuantity() {
+        return quantity;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

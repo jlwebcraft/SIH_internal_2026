@@ -11,6 +11,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -54,15 +56,30 @@ public class SupplierMaterial {
     private String status;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private Instant updatedAt;
 
     protected SupplierMaterial() {
     }
 
+    public SupplierMaterial(Supplier supplier, Material material) {
+        this.supplier = supplier;
+        this.material = material;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public Material getMaterial() {
+        return material;
     }
 }

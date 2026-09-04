@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -62,9 +64,11 @@ public class Material {
     private String status;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "material", fetch = FetchType.LAZY)
@@ -80,6 +84,11 @@ public class Material {
     private Set<PurchaseOrderItem> purchaseOrderItems = new LinkedHashSet<>();
 
     protected Material() {
+    }
+
+    public Material(String code, String name) {
+        this.code = code;
+        this.name = name;
     }
 
     public Long getId() {
@@ -100,5 +109,21 @@ public class Material {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCriticality() {
+        return criticality;
+    }
+
+    public void setCriticality(String criticality) {
+        this.criticality = criticality;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

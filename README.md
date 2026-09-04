@@ -23,7 +23,7 @@ The project is organized as a monorepo with separate areas for the frontend, bac
 
 ## Current Development Phase
 
-This repository is currently in the operational domain model phase. The Spring Boot API foundation, PostgreSQL/JPA configuration, Flyway migration setup, and initial operational entity mappings are in place without implementing business services, REST CRUD APIs, authentication, Firebase integration, frontend functionality, or ML models.
+This repository is currently in the persistence repository foundation phase. The Spring Boot API foundation, PostgreSQL/JPA configuration, Flyway migration setup, operational entity mappings, and Spring Data JPA repositories are in place without implementing business services, REST CRUD APIs, authentication, Firebase integration, frontend functionality, or ML models.
 
 ## Local Backend Database Configuration
 

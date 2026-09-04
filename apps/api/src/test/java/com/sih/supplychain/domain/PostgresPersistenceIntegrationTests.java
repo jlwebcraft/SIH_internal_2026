@@ -65,7 +65,7 @@ class PostgresPersistenceIntegrationTests {
                 """, String.class);
 
         assertThat(tableNames).containsAll(EXPECTED_TABLES);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
 
         Integer roleCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM roles", Integer.class);
         assertThat(roleCount).isNotNull().isGreaterThanOrEqualTo(3);

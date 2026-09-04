@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.LinkedHashSet;
@@ -30,12 +31,17 @@ public class Role {
     private String description;
 
     @Column(name = "created_at")
+    @CreationTimestamp
     private Instant createdAt;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
     private Set<User> users = new LinkedHashSet<>();
 
     protected Role() {
+    }
+
+    public Role(String name) {
+        this.name = name;
     }
 
     public Long getId() {

@@ -18,14 +18,15 @@ The current backend includes:
 - PostgreSQL datasource configuration using environment variables
 - Flyway configured to run PostgreSQL migrations from `infra/database/migrations`
 - Operational supply-chain JPA entities for suppliers, materials, products, inventory, orders, deliveries, and supplier performance
+- Spring Data JPA repositories for operational persistence access
 - Minimal health endpoint at `GET /api/health`
 - Automated tests for application startup and the health endpoint
 
-Persistence dependencies, entity mappings, and the initial operational schema migration are present, but repositories, validation-heavy domain logic, security, and business APIs are not implemented yet.
+Persistence dependencies, entity mappings, Flyway migrations, and repository interfaces are present, but validation-heavy domain logic, security, business services, and business APIs are not implemented yet.
 
 ## Database
 
-PostgreSQL is the initial relational database. The initial operational schema is managed by Flyway migration `V1__create_operational_schema.sql`.
+PostgreSQL is the initial relational database. Operational schema changes are managed by Flyway migrations in `infra/database/migrations`.
 
 ## ML Service
 

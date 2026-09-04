@@ -52,7 +52,32 @@ public class CustomerOrder {
     protected CustomerOrder() {
     }
 
+    public CustomerOrder(String orderNumber, String customerName) {
+        this.orderNumber = orderNumber;
+        this.customerName = customerName;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public String getOrderNumber() {
+        return orderNumber;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Set<CustomerOrderItem> getItems() {
+        return items;
     }
 }

@@ -51,7 +51,25 @@ public class PurchaseOrderItem {
     protected PurchaseOrderItem() {
     }
 
+    public PurchaseOrderItem(PurchaseOrder purchaseOrder, Material material, BigDecimal quantity) {
+        this.purchaseOrder = purchaseOrder;
+        this.material = material;
+        this.quantity = quantity;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public PurchaseOrder getPurchaseOrder() {
+        return purchaseOrder;
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    public BigDecimal getQuantity() {
+        return quantity;
     }
 }
