@@ -1,18 +1,25 @@
 package com.sih.supplychain.mapper;
 
+import com.sih.supplychain.domain.CustomerOrder;
+import com.sih.supplychain.domain.CustomerOrderItem;
 import com.sih.supplychain.domain.Delivery;
 import com.sih.supplychain.domain.Inventory;
 import com.sih.supplychain.domain.Material;
 import com.sih.supplychain.domain.Product;
 import com.sih.supplychain.domain.ProductMaterial;
+import com.sih.supplychain.domain.ProductionOrder;
 import com.sih.supplychain.domain.PurchaseOrder;
 import com.sih.supplychain.domain.PurchaseOrderItem;
 import com.sih.supplychain.domain.Supplier;
 import com.sih.supplychain.domain.SupplierMaterial;
+import com.sih.supplychain.domain.User;
 import com.sih.supplychain.dto.common.MaterialSummaryResponse;
 import com.sih.supplychain.dto.common.ProductSummaryResponse;
 import com.sih.supplychain.dto.common.PurchaseOrderSummaryResponse;
 import com.sih.supplychain.dto.common.SupplierSummaryResponse;
+import com.sih.supplychain.dto.common.UserSummaryResponse;
+import com.sih.supplychain.dto.customerorder.CustomerOrderItemResponse;
+import com.sih.supplychain.dto.customerorder.CustomerOrderResponse;
 import com.sih.supplychain.dto.delivery.DeliveryCreateRequest;
 import com.sih.supplychain.dto.delivery.DeliveryResponse;
 import com.sih.supplychain.dto.delivery.DeliveryUpdateRequest;
@@ -25,6 +32,7 @@ import com.sih.supplychain.dto.material.MaterialUpdateRequest;
 import com.sih.supplychain.dto.product.ProductCreateRequest;
 import com.sih.supplychain.dto.product.ProductResponse;
 import com.sih.supplychain.dto.product.ProductUpdateRequest;
+import com.sih.supplychain.dto.productionorder.ProductionOrderResponse;
 import com.sih.supplychain.dto.productmaterial.ProductMaterialCreateRequest;
 import com.sih.supplychain.dto.productmaterial.ProductMaterialResponse;
 import com.sih.supplychain.dto.productmaterial.ProductMaterialUpdateRequest;
@@ -430,7 +438,70 @@ public final class OperationalMapper {
         delivery.setNotes(request.notes());
     }
 
+    public static ProductionOrderResponse toProductionOrderResponse(ProductionOrder order) {
+        return new ProductionOrderResponse(
+                order.getId(),
+                order.getProductionNumber(),
+                toProductSummary(order.getProduct()),
+                order.getQuantity(),
+                order.getPlannedStartDate(),
+                order.getPlannedEndDate(),
+                order.getActualStartDate(),
+                order.getActualEndDate(),
+                order.getStatus(),
+                order.getPriority(),
+                toUserSummary(order.getCreatedBy())
+        );
+    }
+
+    public static CustomerOrderResponse toCustomerOrderResponse(CustomerOrder order) {
+        return new CustomerOrderResponse(
+                order.getId(),
+                order.getOrderNumber(),
+                order.getCustomerName(),
+                order.getOrderDate(),
+                order.getRequiredDeliveryDate(),
+                order.getStatus(),
+                order.getPriority(),
+                order.getTotalAmount(),
+                order.getItems().stream()
+                        .sorted(Comparator.comparing(CustomerOrderItem::getId, Comparator.nullsLast(Long::compareTo)))
+                        .map(OperationalMapper::toCustomerOrderItemResponse)
+                        .toList()
+        );
+    }
+
+    public static CustomerOrderItemResponse toCustomerOrderItemResponse(CustomerOrderItem item) {
+        return new CustomerOrderItemResponse(
+                item.getId(),
+                toProductSummary(item.getProduct()),
+                item.getQuantity(),
+                item.getUnitPrice(),
+                calculateCustomerOrderLineAmount(item)
+        );
+    }
+
+    public static UserSummaryResponse toUserSummary(User user) {
+        if (user == null) {
+            return null;
+        }
+        return new UserSummaryResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail()
+        );
+    }
+
     private static BigDecimal calculateLineAmount(PurchaseOrderItem item) {
+        if (item.getQuantity() == null || item.getUnitPrice() == null) {
+            return null;
+        }
+        return item.getQuantity()
+                .multiply(item.getUnitPrice())
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static BigDecimal calculateCustomerOrderLineAmount(CustomerOrderItem item) {
         if (item.getQuantity() == null || item.getUnitPrice() == null) {
             return null;
         }

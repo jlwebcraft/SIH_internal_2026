@@ -295,6 +295,80 @@ Inventory receipt limitation:
 - Marking a delivery delivered does not update inventory yet.
 - The current delivery table does not track per-material delivered quantities, so automatic receipt processing would risk double-counting. Inventory receipt should be implemented in a later refinement with explicit received quantities and idempotent receipt tracking.
 
+## Production Orders
+
+| Method | URI | Purpose | Request | Response | Success | Errors |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/api/production-orders` | List production orders. Optional filters: `productId`, `status`. | None | `List<ProductionOrderResponse>` | `200` | `400`, `404`, `500` |
+| `GET` | `/api/production-orders/{id}` | Get production order by ID. | None | `ProductionOrderResponse` | `200` | `404`, `500` |
+| `GET` | `/api/production-orders/by-number/{productionNumber}` | Get production order by number. | None | `ProductionOrderResponse` | `200` | `404`, `500` |
+| `POST` | `/api/production-orders` | Create a production order for a product. | `ProductionOrderCreateRequest` | `ProductionOrderResponse` | `201` | `400`, `404`, `409`, `500` |
+| `PUT` | `/api/production-orders/{id}` | Update production order planning fields. | `ProductionOrderUpdateRequest` | `ProductionOrderResponse` | `200` | `400`, `404`, `500` |
+| `PUT` / `PATCH` | `/api/production-orders/{id}/status` | Transition production order lifecycle status. | `ProductionOrderStatusUpdateRequest` | `ProductionOrderResponse` | `200` | `400`, `404`, `500` |
+| `POST` / `PATCH` | `/api/production-orders/{id}/cancel` | Cancel a production order. | None | `ProductionOrderResponse` | `200` | `400`, `404`, `500` |
+
+DTO design:
+
+- `ProductionOrderCreateRequest`: `productionNumber`, `productId`, `quantity`, `plannedStartDate`, `plannedEndDate`, `actualStartDate`, `actualEndDate`, `status`, `priority`, `createdBy`.
+- `ProductionOrderUpdateRequest`: `quantity`, `plannedStartDate`, `plannedEndDate`, `actualStartDate`, `actualEndDate`, `priority`, `createdBy`.
+- `ProductionOrderStatusUpdateRequest`: `status`.
+- `ProductionOrderResponse`: `id`, `productionNumber`, `product` summary, `quantity`, `plannedStartDate`, `plannedEndDate`, `actualStartDate`, `actualEndDate`, `status`, `priority`, `createdBy` summary.
+
+Validation expectations:
+
+- Request DTO: `productionNumber` `@NotBlank`, `productId` `@NotNull`, `quantity` `@Positive`.
+- Service: product exists, production number is unique, planned start date cannot be after planned end date, creator exists if specified.
+- Production orders are not linked directly to customer orders in this phase; fulfillment allocation is deferred.
+
+Production order lifecycle:
+
+```text
+PLANNED -> IN_PROGRESS -> COMPLETED
+PLANNED -> CANCELLED
+IN_PROGRESS -> CANCELLED
+```
+
+## Customer Orders
+
+| Method | URI | Purpose | Request | Response | Success | Errors |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/api/customer-orders` | List customer orders. Optional filter: `status`. | None | `List<CustomerOrderResponse>` | `200` | `400`, `500` |
+| `GET` | `/api/customer-orders/{id}` | Get customer order by ID. | None | `CustomerOrderResponse` | `200` | `404`, `500` |
+| `GET` | `/api/customer-orders/by-number/{orderNumber}` | Get customer order by order number. | None | `CustomerOrderResponse` | `200` | `404`, `500` |
+| `POST` | `/api/customer-orders` | Create customer order with one or more items. | `CustomerOrderCreateRequest` | `CustomerOrderResponse` | `201` | `400`, `404`, `409`, `500` |
+| `PUT` | `/api/customer-orders/{id}` | Update customer order header fields. | `CustomerOrderUpdateRequest` | `CustomerOrderResponse` | `200` | `400`, `404`, `500` |
+| `PUT` / `PATCH` | `/api/customer-orders/{id}/status` | Transition customer order lifecycle status. | `CustomerOrderStatusUpdateRequest` | `CustomerOrderResponse` | `200` | `400`, `404`, `500` |
+| `POST` / `PATCH` | `/api/customer-orders/{id}/cancel` | Cancel a customer order. | None | `CustomerOrderResponse` | `200` | `400`, `404`, `500` |
+
+DTO design:
+
+- `CustomerOrderCreateRequest`: `orderNumber`, `customerName`, `orderDate`, `requiredDeliveryDate`, `status`, `priority`, `items`.
+- `CustomerOrderItemRequest`: `productId`, `quantity`, `unitPrice`.
+- `CustomerOrderUpdateRequest`: `customerName`, `orderDate`, `requiredDeliveryDate`, `priority`.
+- `CustomerOrderStatusUpdateRequest`: `status`.
+- `CustomerOrderResponse`: `id`, `orderNumber`, `customerName`, `orderDate`, `requiredDeliveryDate`, `status`, `priority`, server-calculated `totalAmount`, `items`.
+- `CustomerOrderItemResponse`: `id`, `product` summary, `quantity`, `unitPrice`, `lineAmount`.
+
+Validation expectations:
+
+- Request DTO: `orderNumber` `@NotBlank`, `customerName` `@NotBlank`, `items` `@NotEmpty`, item `productId` `@NotNull`, item `quantity` `@Positive`, item `unitPrice` `@PositiveOrZero`.
+- Service: order number is unique, every product exists, order date cannot be after required delivery date, total amount is calculated server-side from `sum(quantity * unitPrice)`.
+- Customer order creation is atomic across all items.
+
+Customer order lifecycle:
+
+```text
+PENDING -> CONFIRMED -> IN_PROGRESS -> FULFILLED
+PENDING -> CANCELLED
+CONFIRMED -> CANCELLED
+IN_PROGRESS -> CANCELLED
+```
+
+Operational & Inventory boundaries:
+- Creating or advancing production orders does NOT consume inventory or generate finished goods stock in this phase.
+- Creating customer orders does NOT decrement inventory or reserve finished goods in this phase.
+- Direct foreign keys between `ProductionOrder` and `CustomerOrder` are deferred until an explicit allocation/fulfillment model is introduced.
+
 ## Validation Strategy
 
 DTO validation should handle structural request problems:

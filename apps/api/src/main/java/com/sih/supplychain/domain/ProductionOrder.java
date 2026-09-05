@@ -79,8 +79,48 @@ public class ProductionOrder {
         return product;
     }
 
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
     public BigDecimal getQuantity() {
         return quantity;
+    }
+
+    public void setQuantity(BigDecimal quantity) {
+        this.quantity = quantity;
+    }
+
+    public LocalDate getPlannedStartDate() {
+        return plannedStartDate;
+    }
+
+    public void setPlannedStartDate(LocalDate plannedStartDate) {
+        this.plannedStartDate = plannedStartDate;
+    }
+
+    public LocalDate getPlannedEndDate() {
+        return plannedEndDate;
+    }
+
+    public void setPlannedEndDate(LocalDate plannedEndDate) {
+        this.plannedEndDate = plannedEndDate;
+    }
+
+    public LocalDate getActualStartDate() {
+        return actualStartDate;
+    }
+
+    public void setActualStartDate(LocalDate actualStartDate) {
+        this.actualStartDate = actualStartDate;
+    }
+
+    public LocalDate getActualEndDate() {
+        return actualEndDate;
+    }
+
+    public void setActualEndDate(LocalDate actualEndDate) {
+        this.actualEndDate = actualEndDate;
     }
 
     public String getStatus() {
@@ -89,5 +129,21 @@ public class ProductionOrder {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
     }
 }

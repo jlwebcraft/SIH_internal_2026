@@ -69,12 +69,48 @@ public class CustomerOrder {
         return customerName;
     }
 
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDate orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public LocalDate getRequiredDeliveryDate() {
+        return requiredDeliveryDate;
+    }
+
+    public void setRequiredDeliveryDate(LocalDate requiredDeliveryDate) {
+        this.requiredDeliveryDate = requiredDeliveryDate;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public Set<CustomerOrderItem> getItems() {

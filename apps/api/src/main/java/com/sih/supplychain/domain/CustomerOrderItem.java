@@ -55,11 +55,31 @@ public class CustomerOrderItem {
         return customerOrder;
     }
 
+    public void setCustomerOrder(CustomerOrder customerOrder) {
+        this.customerOrder = customerOrder;
+    }
+
     public Product getProduct() {
         return product;
     }
 
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
     public BigDecimal getQuantity() {
         return quantity;
+    }
+
+    public void setQuantity(BigDecimal quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
     }
 }
