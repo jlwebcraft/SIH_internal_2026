@@ -35,7 +35,38 @@ Inventory stock adjustment is currently protected by transactional service valid
 
 ## ML Service
 
-The ML service will be a Python FastAPI service. It will later support disruption prediction workflows using pandas, NumPy, scikit-learn, and other appropriate ML libraries.
+The ML service is implemented under `apps/ml-service` as a Python 3.13+ FastAPI microservice.
+
+### Architectural Boundary & Responsibilities:
+```text
+React Frontend (Future)
+       │
+       ▼
+Spring Boot Backend API (apps/api)
+       │
+       ├─────────────────────────────────┐
+       ▼                                 ▼
+PostgreSQL Database              FastAPI ML Service (apps/ml-service)
+(System of Record)                       │
+                                         ▼
+                               Feature Engineering
+                                         │
+                                         ▼
+                                ML Model Inference
+```
+
+1. **Backend Ownership:**
+   - Spring Boot remains the primary business application backend, orchestrating procurement workflows, entity lifecycle state transitions, and operational security.
+   - Spring Boot owns the deterministic 5-dimension rolling 90-day supplier performance and risk engine (`SupplierPerformanceService` / `SupplierRiskEngineService`).
+   - PostgreSQL is exclusively owned and queried by Spring Boot; the ML service does **not** directly access PostgreSQL in Phase 7C.
+
+2. **ML Service Ownership:**
+   - FastAPI owns ML feature engineering, model lifecycle management, and probabilistic inference pipelines.
+   - Disruption prediction ($P(\text{Disruption}) \in [0.0, 1.0]$) represents a distinct, forward-looking probabilistic signal.
+   - In Phase 7C, the service establishes the FastAPI scaffolding, configuration, candidate feature transformers, and model abstraction contracts, returning explicit `503 Model Not Available` responses rather than manufacturing fake predictions.
+
+3. **Combined Decision Layer (Future):**
+   - Downstream recommendation, alert, and simulation engines in Spring Boot will consume both the backward-looking deterministic risk score and forward-looking ML disruption probability to drive prescriptive actions.
 
 ## Authentication And Firebase
 
