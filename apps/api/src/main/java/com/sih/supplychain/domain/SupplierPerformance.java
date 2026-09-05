@@ -73,8 +73,72 @@ public class SupplierPerformance {
         return supplier;
     }
 
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
     public LocalDate getEvaluationDate() {
         return evaluationDate;
+    }
+
+    public void setEvaluationDate(LocalDate evaluationDate) {
+        this.evaluationDate = evaluationDate;
+    }
+
+    public BigDecimal getOnTimeDeliveryRate() {
+        return onTimeDeliveryRate;
+    }
+
+    public void setOnTimeDeliveryRate(BigDecimal onTimeDeliveryRate) {
+        this.onTimeDeliveryRate = onTimeDeliveryRate;
+    }
+
+    public BigDecimal getAverageDelayDays() {
+        return averageDelayDays;
+    }
+
+    public void setAverageDelayDays(BigDecimal averageDelayDays) {
+        this.averageDelayDays = averageDelayDays;
+    }
+
+    public BigDecimal getLeadTimeVariance() {
+        return leadTimeVariance;
+    }
+
+    public void setLeadTimeVariance(BigDecimal leadTimeVariance) {
+        this.leadTimeVariance = leadTimeVariance;
+    }
+
+    public BigDecimal getFulfillmentRate() {
+        return fulfillmentRate;
+    }
+
+    public void setFulfillmentRate(BigDecimal fulfillmentRate) {
+        this.fulfillmentRate = fulfillmentRate;
+    }
+
+    public BigDecimal getRejectionRate() {
+        return rejectionRate;
+    }
+
+    public void setRejectionRate(BigDecimal rejectionRate) {
+        this.rejectionRate = rejectionRate;
+    }
+
+    public BigDecimal getCapacityUtilization() {
+        return capacityUtilization;
+    }
+
+    public void setCapacityUtilization(BigDecimal capacityUtilization) {
+        this.capacityUtilization = capacityUtilization;
+    }
+
+    public Integer getDisruptionCount() {
+        return disruptionCount;
+    }
+
+    public void setDisruptionCount(Integer disruptionCount) {
+        this.disruptionCount = disruptionCount;
     }
 
     public BigDecimal getOverallScore() {

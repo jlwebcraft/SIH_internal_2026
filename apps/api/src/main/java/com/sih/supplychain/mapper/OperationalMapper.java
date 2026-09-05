@@ -11,6 +11,7 @@ import com.sih.supplychain.domain.ProductionOrder;
 import com.sih.supplychain.domain.PurchaseOrder;
 import com.sih.supplychain.domain.PurchaseOrderItem;
 import com.sih.supplychain.domain.Supplier;
+import com.sih.supplychain.domain.SupplierPerformance;
 import com.sih.supplychain.domain.SupplierMaterial;
 import com.sih.supplychain.domain.User;
 import com.sih.supplychain.dto.common.MaterialSummaryResponse;
@@ -29,6 +30,7 @@ import com.sih.supplychain.dto.inventory.InventoryUpdateRequest;
 import com.sih.supplychain.dto.material.MaterialCreateRequest;
 import com.sih.supplychain.dto.material.MaterialResponse;
 import com.sih.supplychain.dto.material.MaterialUpdateRequest;
+import com.sih.supplychain.dto.performance.SupplierPerformanceResponse;
 import com.sih.supplychain.dto.product.ProductCreateRequest;
 import com.sih.supplychain.dto.product.ProductResponse;
 import com.sih.supplychain.dto.product.ProductUpdateRequest;
@@ -38,12 +40,15 @@ import com.sih.supplychain.dto.productmaterial.ProductMaterialResponse;
 import com.sih.supplychain.dto.productmaterial.ProductMaterialUpdateRequest;
 import com.sih.supplychain.dto.purchaseorder.PurchaseOrderItemResponse;
 import com.sih.supplychain.dto.purchaseorder.PurchaseOrderResponse;
+import com.sih.supplychain.dto.risk.SupplierRiskResponse;
 import com.sih.supplychain.dto.supplier.SupplierCreateRequest;
 import com.sih.supplychain.dto.supplier.SupplierResponse;
 import com.sih.supplychain.dto.supplier.SupplierUpdateRequest;
 import com.sih.supplychain.dto.suppliermaterial.SupplierMaterialCreateRequest;
 import com.sih.supplychain.dto.suppliermaterial.SupplierMaterialResponse;
 import com.sih.supplychain.dto.suppliermaterial.SupplierMaterialUpdateRequest;
+import com.sih.supplychain.service.SupplierPerformanceCalculatorService.RawPerformanceMetrics;
+import com.sih.supplychain.service.SupplierRiskEngineService.RiskEvaluationResult;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -508,5 +513,61 @@ public final class OperationalMapper {
         return item.getQuantity()
                 .multiply(item.getUnitPrice())
                 .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public static SupplierPerformanceResponse toPerformanceResponse(RawPerformanceMetrics metrics) {
+        return new SupplierPerformanceResponse(
+                null,
+                toSupplierSummary(metrics.supplier()),
+                metrics.evaluationDate(),
+                metrics.windowDays(),
+                metrics.onTimeDeliveryRate(),
+                metrics.averageDelayDays(),
+                metrics.leadTimeVariance(),
+                metrics.fulfillmentRate(),
+                metrics.rejectionRate(),
+                metrics.capacityUtilization(),
+                metrics.disruptionCount(),
+                null,
+                metrics.insufficientHistory(),
+                metrics.totalOrders(),
+                metrics.completedDeliveries()
+        );
+    }
+
+    public static SupplierPerformanceResponse toPerformanceResponse(SupplierPerformance performance) {
+        return new SupplierPerformanceResponse(
+                performance.getId(),
+                toSupplierSummary(performance.getSupplier()),
+                performance.getEvaluationDate(),
+                90,
+                performance.getOnTimeDeliveryRate(),
+                performance.getAverageDelayDays(),
+                performance.getLeadTimeVariance(),
+                performance.getFulfillmentRate(),
+                performance.getRejectionRate(),
+                performance.getCapacityUtilization(),
+                performance.getDisruptionCount(),
+                performance.getOverallScore(),
+                false,
+                0,
+                0
+        );
+    }
+
+    public static SupplierRiskResponse toRiskResponse(RiskEvaluationResult result) {
+        return new SupplierRiskResponse(
+                toSupplierSummary(result.supplier()),
+                result.evaluationDate(),
+                result.overallScore(),
+                result.riskLevel(),
+                result.insufficientHistory(),
+                result.dimensionScores(),
+                result.effectiveWeights(),
+                toPerformanceResponse(result.underlyingMetrics()),
+                result.topRiskDrivers(),
+                result.recommendations(),
+                result.calculatedAt()
+        );
     }
 }

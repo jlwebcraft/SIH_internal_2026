@@ -317,3 +317,26 @@ Deterministic Score (0-100) ──► Macro Supplier Risk Level
    - In standard supply chains, disruptions occur in 5–15% of transactions. Class weighting (`scale_pos_weight` in XGBoost), SMOTE, or Precision-Recall AUC (PR-AUC) optimization must be used rather than raw accuracy.
 4. **Temporal Integrity (No Data Leakage):**
    - Training and validation must use time-series walk-forward splits (e.g., Train on Month 1–6, Test on Month 7–8) rather than random $k$-fold cross-validation to prevent future-data leakage.
+
+---
+
+## 12. Phase 7B Implemented Endpoints & Verification
+
+The Phase 7B implementation exposes the following deterministic REST endpoints:
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/api/suppliers/{id}/performance` | Computes rolling 90-day performance metrics (OTDR, Avg Delay, LTV, Fulfillment, Capacity Commitment, Disruptions). |
+| `GET` | `/api/suppliers/{id}/performance/history` | Returns historical snapshots persisted in `supplier_performances` ordered by `evaluationDate DESC`. |
+| `POST` | `/api/suppliers/{id}/performance/snapshot` | Evaluates current performance/risk and creates an idempotent daily snapshot in `supplier_performances`. |
+| `GET` | `/api/suppliers/{id}/risk` | Computes deterministic 0–100 risk score, risk level band, dimension breakdown, effective weights, and explainable risk drivers. |
+
+### 12.1. Date Selection and Evaluation Window Rules
+- **Window:** Evaluates events where `businessEventDate >= evaluationDate - 90 days` and `businessEventDate <= evaluationDate`.
+- **Deliveries:** Evaluated based on `actualArrivalDate` (or `dispatchDate` for in-transit disruptions). Future deliveries (`actualArrivalDate > evaluationDate`) are excluded.
+- **Purchase Orders:** Evaluated based on `orderDate` within the 90-day window.
+
+### 12.2. Minimum History and Missing Data Handling
+- **Insufficient History Threshold:** Minimum 1 completed delivery or active purchase order in the 90-day window.
+- **Dynamic Weight Redistribution:** Unavailable dimensions (e.g. delivery metrics for cold-start suppliers) have their weights proportionally redistributed across available dimensions.
+- **Rejection Rate:** Explicitly preserved as `null` without fabricating fictitious quality inspections.

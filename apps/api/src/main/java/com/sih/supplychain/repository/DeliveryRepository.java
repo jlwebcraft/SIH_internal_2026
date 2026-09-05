@@ -22,4 +22,7 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
     @EntityGraph(attributePaths = {"purchaseOrder", "purchaseOrder.supplier"})
     List<Delivery> findByTrackingNumber(String trackingNumber);
+
+    @EntityGraph(attributePaths = {"purchaseOrder", "purchaseOrder.supplier", "purchaseOrder.items", "purchaseOrder.items.material"})
+    List<Delivery> findByPurchaseOrderSupplierId(Long supplierId);
 }
