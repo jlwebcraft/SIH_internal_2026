@@ -2,11 +2,10 @@
 
 FastAPI-based Machine Learning microservice for the Intelligent Supply Chain Disruption Prediction platform.
 
-In **Phase 7C (ML Service Foundation)** and **Phase 7D (ML Dataset and Feature Engineering Pipeline)**, this service establishes:
+In **Phase 7C (ML Service Foundation)**, **Phase 7D (ML Dataset & Feature Engineering Pipeline)**, and **Phase 7E (Model Training & Evaluation)**, this service establishes:
 1. The standalone FastAPI service architecture, configuration management, feature transformation layer, and model abstraction contracts.
 2. The ML dataset schema, temporal feature extractor, deterministic disruption labeler, temporal dataset splitter, preprocessing pipeline, and synthetic data generation CLI.
-
-It does **not** train a machine learning model, return fake predictions, or load unverified dummy models. The prediction endpoint continues to return `503 Model Not Available`.
+3. The reproducible model training and validation pipeline, comparing `LogisticRegression` and `RandomForestClassifier` on chronological splits, selecting the F1-optimal probability threshold on validation data, and serializing `disruption-baseline-v1` for low-latency FastAPI inference.
 
 ---
 
@@ -17,6 +16,7 @@ It does **not** train a machine learning model, return fake predictions, or load
 - **ASGI Server:** Uvicorn
 - **Data & Numerical Processing:** NumPy, pandas, scikit-learn
 - **Validation & Serialization:** Pydantic v2
+- **Model Serialization:** Joblib
 - **Testing:** pytest, HTTPX
 
 ---
@@ -29,7 +29,7 @@ apps/ml-service/
 │   ├── api/
 │   │   └── routes/
 │   │       ├── health.py        # Health and readiness endpoints
-│   │       └── prediction.py    # Disruption prediction endpoint (Phase 7C contract)
+│   │       └── prediction.py    # Disruption prediction endpoint (Phase 7E inference)
 │   ├── core/
 │   │   ├── errors.py            # Custom exceptions and HTTP mappings
 │   │   └── logging.py           # Structured logging setup
@@ -47,8 +47,13 @@ apps/ml-service/
 │   │   │   └── transformer.py   # Deterministic numerical feature transformation
 │   │   ├── inference/
 │   │   │   └── pipeline.py      # Inference pipeline coordinator
-│   │   └── models/
-│   │       └── base.py          # Abstract model contract (BaseDisruptionModel)
+│   │   ├── models/
+│   │   │   ├── base.py          # Abstract model contract (BaseDisruptionModel)
+│   │   │   └── disruption_model.py # TrainedDisruptionModel implementing Joblib artifact inference
+│   │   └── training/
+│   │       ├── evaluator.py     # Standardized evaluation metrics (ROC-AUC, PR-AUC, F1, CM)
+│   │       ├── trainer.py       # Chronological training & validation comparison pipeline
+│   │       └── train.py         # Model training CLI entry point
 │   ├── schemas/
 │   │   ├── error.py             # Standardized error responses
 │   │   ├── health.py            # Health and readiness schemas
@@ -57,8 +62,12 @@ apps/ml-service/
 │   │   └── prediction_service.py # Application-level prediction orchestration
 │   ├── config.py                # Environment-driven configuration (BaseSettings)
 │   └── main.py                  # FastAPI application entry point
-├── models/                      # Future trained model artifacts (.gitkeep)
-├── tests/                       # Pytest test suite (57 automated tests)
+├── docs/
+│   └── model-training.md        # Comprehensive Phase 7E model training & evaluation documentation
+├── models/                      # Serialized model artifacts & metadata
+│   ├── disruption_model_v1.joblib
+│   └── disruption_model_v1_metadata.json
+├── tests/                       # Pytest test suite (66 automated tests)
 ├── .env.example                 # Example environment variables
 ├── pytest.ini                   # Pytest discovery configuration
 ├── requirements.txt             # Pinned project dependencies
@@ -132,85 +141,97 @@ Enforcing: $\max(T_{\text{train}}) \le \min(T_{\text{val}}) \le \max(T_{\text{va
 
 ---
 
-## 4. Synthetic Dataset Generator & CLI
+## 4. Model Training & Evaluation (Phase 7E)
 
-### 4.1. Developer Disclaimer & Prevalence Rationale
+### 4.1. Developer Disclaimer
 > **IMPORTANT:** Synthetic datasets are generated strictly for development, testing, and pipeline validation. Synthetic data does NOT represent real-world supplier behavior and must NOT be cited as evidence of production machine-learning model accuracy.
 
-**Prevalence Design Rationale:** The synthetic generator produces an ~21% disruption prevalence using a logistic probability distribution with stochastic noise $\mathcal{N}(0, 0.45^2)$. This mirrors real-world supply-chain minority disruption baselines (~10–25%) while providing sufficient positive minority instances for stable cross-validation, precision-recall evaluation, and ROC-AUC curve fitting in Phase 7E.
-
-### 4.2. CLI Usage
-
-From `apps/ml-service/`:
+### 4.2. Model Training Workflow
 
 ```powershell
-# 1. Generate Synthetic Dataset (e.g., 3,000 samples with seed 42)
-.\.venv\Scripts\python.exe -m app.ml.data.cli generate --samples 3000 --seed 42 --output-dir data
+# 1. Train Model via Python Module
+python -m app.ml.training.train --samples 3000 --seed 42 --output-dir models
 
-# 2. Validate Dataset Integrity and Schema
-.\.venv\Scripts\python.exe -m app.ml.data.cli validate data/procurement_dataset_v1.csv
-
-# 3. Create Chronological Temporal Split
-.\.venv\Scripts\python.exe -m app.ml.data.cli split data/procurement_dataset_v1.csv --train 0.70 --val 0.15 --test 0.15 --output-dir data
+# 2. Or Execute via PowerShell Script
+.\scripts\train-model.ps1 -Samples 3000 -Seed 42
 ```
 
-PowerShell helper scripts in repository root:
-```powershell
-# Generate dataset
-.\scripts\generate-dataset.ps1 -Samples 3000 -Seed 42
+### 4.3. Empirical Baseline Results (`disruption-baseline-v1`):
 
-# Validate dataset
-.\scripts\validate-dataset.ps1 -FilePath apps/ml-service/data/procurement_dataset_v1.csv
-```
+- **Selected Model:** `LogisticRegression` (`class_weight='balanced'`)
+- **Optimal Probability Threshold:** `0.46` (selected via validation F1 grid search)
+- **Validation PR-AUC:** `0.3768` (vs `0.3726` for Random Forest)
+- **Final Test Performance (Untouched Test Set):**
+  - **ROC-AUC:** `0.6222`
+  - **PR-AUC:** `0.4096`
+  - **Precision:** `0.3284`
+  - **Recall:** `0.5789`
+  - **F1-Score:** `0.4190`
+  - **Confusion Matrix:** `[[201, 135], [48, 66]]` (Support: Positives=114, Negatives=336)
 
 ---
 
-## 5. Setup and Local Execution
+## 5. REST Endpoints & Inference
 
-### 5.1. Prerequisites
+### 5.1. Health Check
+- **Endpoint:** `GET /api/health`
+- **Response:**
+  ```json
+  {
+    "status": "UP",
+    "service": "supply-chain-ml-service",
+    "version": "0.1.0"
+  }
+  ```
 
-Ensure Python 3.13+ is installed on your system:
+### 5.2. Readiness Probe
+- **Endpoint:** `GET /api/ready`
+- **Response (Phase 7E Loaded Model):**
+  ```json
+  {
+    "status": "READY",
+    "service": "supply-chain-ml-service",
+    "version": "0.1.0",
+    "model_available": true,
+    "details": "ML model artifact loaded and ready for inference (disruption-baseline-v1)"
+  }
+  ```
 
-```powershell
-python --version
-```
-
-### 5.2. Create Virtual Environment
-
-From `apps/ml-service/`:
-
-```powershell
-# Create virtual environment
-python -m venv .venv
-
-# Activate on Windows (PowerShell)
-.\.venv\Scripts\Activate.ps1
-```
-
-### 5.3. Install Dependencies
-
-```powershell
-pip install -r requirements.txt
-```
-
-### 5.4. Run FastAPI Development Server
-
-```powershell
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-Endpoints:
-- Base API: `http://localhost:8000`
-- OpenAPI Docs: `http://localhost:8000/docs`
-- Health: `http://localhost:8000/api/health`
-- Readiness: `http://localhost:8000/api/ready`
+### 5.3. Disruption Prediction
+- **Endpoint:** `POST /api/predict/disruption`
+- **Request Payload:**
+  ```json
+  {
+    "hist_otdr_90d": 85.5,
+    "hist_avg_delay_90d": 2.3,
+    "hist_fulfillment_rate_90d": 96.0,
+    "hist_disruptions_90d": 1,
+    "supplier_lead_time_contract": 14,
+    "material_criticality": "HIGH",
+    "order_volume_ratio": 1.25,
+    "inventory_coverage_days": 18.0,
+    "po_line_value": 15400.0,
+    "supplier_country": "DE"
+  }
+  ```
+- **Response (Phase 7E Inference):**
+  ```json
+  {
+    "disruption_probability": 0.3842,
+    "predicted_label": 0,
+    "risk_tier": "MEDIUM",
+    "model_version": "disruption-baseline-v1",
+    "inference_timestamp": "2026-09-05T13:25:00.000000Z",
+    "confidence": null
+  }
+  ```
 
 ---
 
 ## 6. Running Automated Tests
 
-Run the pytest suite (57 tests covering schema validation, leakage safeguards, temporal splitting, generator, and API contracts):
+Run the full pytest suite (66 tests covering schema validation, leakage safeguards, temporal splitting, generator, model training, and API contracts):
 
 ```powershell
-.\.venv\Scripts\pytest.exe
+.\.venv\Scripts\pytest.exe -v
 ```

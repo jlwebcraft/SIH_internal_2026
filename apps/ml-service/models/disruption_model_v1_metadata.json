@@ -1,0 +1,174 @@
+{
+  "model_version": "disruption-baseline-v1",
+  "model_type": "LogisticRegression",
+  "feature_schema_version": "v1",
+  "training_timestamp": "2026-09-05T13:21:20.544072+00:00",
+  "sklearn_version": "1.9.0",
+  "random_seed": 42,
+  "is_synthetic": true,
+  "synthetic_disclaimer": "Trained on synthetic development procurement dataset for pipeline validation and baseline benchmarking. Synthetic evaluation metrics do NOT represent verified production supplier performance.",
+  "dataset_info": {
+    "total_observations": 3000,
+    "dataset_version": "v1",
+    "disruptions": 629,
+    "prevalence_pct": 20.97
+  },
+  "temporal_split": {
+    "train_rows": 2100,
+    "val_rows": 450,
+    "test_rows": 450,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15
+  },
+  "raw_features": [
+    "hist_otdr_90d",
+    "hist_avg_delay_90d",
+    "hist_fulfillment_rate_90d",
+    "hist_disruptions_90d",
+    "supplier_lead_time_contract",
+    "material_criticality",
+    "order_volume_ratio",
+    "inventory_coverage_days",
+    "po_line_value",
+    "supplier_country"
+  ],
+  "transformed_feature_count": 17,
+  "transformed_feature_names": [
+    "num__hist_otdr_90d",
+    "num__hist_avg_delay_90d",
+    "num__hist_fulfillment_rate_90d",
+    "num__hist_disruptions_90d",
+    "num__supplier_lead_time_contract",
+    "num__material_criticality_encoded",
+    "num__order_volume_ratio",
+    "num__inventory_coverage_days",
+    "num__po_line_value",
+    "cat__supplier_country_CN",
+    "cat__supplier_country_DE",
+    "cat__supplier_country_IN",
+    "cat__supplier_country_JP",
+    "cat__supplier_country_MX",
+    "cat__supplier_country_TW",
+    "cat__supplier_country_US",
+    "cat__supplier_country_VN"
+  ],
+  "model_selection": {
+    "selected_model": "LogisticRegression",
+    "selection_rule": "Primary: PR-AUC (Average Precision), Secondary: Validation F1/Recall, Supporting: ROC-AUC",
+    "selection_reason": "LogisticRegression selected based on competitive PR-AUC (0.3768 vs 0.3726) and linear model interpretability.",
+    "selected_probability_threshold": 0.46,
+    "threshold_selection_rule": "F1-optimal threshold identified via validation grid search in [0.10, 0.90]"
+  },
+  "validation_comparison": {
+    "LogisticRegression": {
+      "default_threshold_0.50": {
+        "roc_auc": 0.6723,
+        "pr_auc": 0.3768,
+        "threshold": 0.5,
+        "precision": 0.3298,
+        "recall": 0.6176,
+        "f1": 0.43,
+        "confusion_matrix": [
+          [
+            220,
+            128
+          ],
+          [
+            39,
+            63
+          ]
+        ],
+        "positive_support": 102,
+        "negative_support": 348,
+        "total_support": 450
+      },
+      "optimal_threshold": {
+        "roc_auc": 0.6723,
+        "pr_auc": 0.3768,
+        "threshold": 0.46,
+        "precision": 0.3133,
+        "recall": 0.7157,
+        "f1": 0.4358,
+        "confusion_matrix": [
+          [
+            188,
+            160
+          ],
+          [
+            29,
+            73
+          ]
+        ],
+        "positive_support": 102,
+        "negative_support": 348,
+        "total_support": 450
+      }
+    },
+    "RandomForestClassifier": {
+      "default_threshold_0.50": {
+        "roc_auc": 0.6664,
+        "pr_auc": 0.3726,
+        "threshold": 0.5,
+        "precision": 0.3631,
+        "recall": 0.5588,
+        "f1": 0.4402,
+        "confusion_matrix": [
+          [
+            248,
+            100
+          ],
+          [
+            45,
+            57
+          ]
+        ],
+        "positive_support": 102,
+        "negative_support": 348,
+        "total_support": 450
+      },
+      "optimal_threshold": {
+        "roc_auc": 0.6664,
+        "pr_auc": 0.3726,
+        "threshold": 0.5,
+        "precision": 0.3631,
+        "recall": 0.5588,
+        "f1": 0.4402,
+        "confusion_matrix": [
+          [
+            248,
+            100
+          ],
+          [
+            45,
+            57
+          ]
+        ],
+        "positive_support": 102,
+        "negative_support": 348,
+        "total_support": 450
+      }
+    }
+  },
+  "final_test_metrics": {
+    "roc_auc": 0.6222,
+    "pr_auc": 0.4096,
+    "threshold": 0.46,
+    "precision": 0.3284,
+    "recall": 0.5789,
+    "f1": 0.419,
+    "confusion_matrix": [
+      [
+        201,
+        135
+      ],
+      [
+        48,
+        66
+      ]
+    ],
+    "positive_support": 114,
+    "negative_support": 336,
+    "total_support": 450
+  }
+}

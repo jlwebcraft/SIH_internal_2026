@@ -33,18 +33,20 @@ class InferencePipeline:
                 "Disruption prediction ML model is not yet trained or loaded in this phase (Phase 7C foundation)."
             )
 
-        # Transform inputs into feature matrix
-        feature_matrix = self.transformer.transform(request)
-
-        # Inference
-        probabilities = self.model.predict_proba(feature_matrix)
-        labels = self.model.predict(feature_matrix)
-
-        prob = float(probabilities[0][1]) if probabilities.ndim > 1 else float(probabilities[0])
-        label = int(labels[0])
+        if hasattr(self.model, "predict_request"):
+            result = self.model.predict_request(request)
+            prob = float(result["disruption_probability"])
+            label = int(result["predicted_label"])
+        else:
+            # Fallback for generic BaseDisruptionModel implementations
+            feature_matrix = self.transformer.transform(request)
+            probabilities = self.model.predict_proba(feature_matrix)
+            labels = self.model.predict(feature_matrix)
+            prob = float(probabilities[0][1]) if probabilities.ndim > 1 else float(probabilities[0])
+            label = int(labels[0])
 
         return DisruptionPredictionResponse(
-            disruption_probability=prob,
+            disruption_probability=round(prob, 4),
             predicted_label=label,
             risk_tier=self._derive_tier(prob),
             model_version=self.model.model_version,
