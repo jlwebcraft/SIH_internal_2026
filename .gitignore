@@ -29,6 +29,11 @@ __pycache__/
 .venv/
 venv/
 env/
+# Datasets and model artifacts (keep data code tracked, ignore dataset files)
+/data/
+apps/ml-service/data/
+*.joblib
+*.pkl
 
 # IntelliJ IDEA and other IDEs
 .idea/

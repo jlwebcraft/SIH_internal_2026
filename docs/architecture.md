@@ -33,9 +33,29 @@ PostgreSQL is the initial relational database. Operational schema changes are ma
 
 Inventory stock adjustment is currently protected by transactional service validation, but advanced concurrency control is not implemented yet. Locking strategy will be revisited when transactional API workflows are introduced.
 
-## ML Service
+## ML Service & Feature Engineering Pipeline
 
 The ML service is implemented under `apps/ml-service` as a Python 3.13+ FastAPI microservice.
+
+### End-to-End ML Pipeline Architecture:
+```text
+Operational Data (Spring Boot / PostgreSQL)
+       │
+       ▼
+Historical Dataset Extraction (Point-in-time PO observation at T)
+       │
+       ▼
+Feature Engineering & Validation (90-day lookback [T-90d, T), zero leakage)
+       │
+       ▼
+Future Model Training (Chronological train/val split, Scikit-learn Pipeline)
+       │
+       ▼
+ML Artifact Serialized (models/*.joblib)
+       │
+       ▼
+FastAPI Inference (POST /api/predict/disruption)
+```
 
 ### Architectural Boundary & Responsibilities:
 ```text
@@ -49,21 +69,22 @@ Spring Boot Backend API (apps/api)
 PostgreSQL Database              FastAPI ML Service (apps/ml-service)
 (System of Record)                       │
                                          ▼
-                               Feature Engineering
+                               Feature Engineering & Preprocessing
                                          │
                                          ▼
-                                ML Model Inference
+                                ML Model Inference (Phase 7E)
 ```
 
 1. **Backend Ownership:**
    - Spring Boot remains the primary business application backend, orchestrating procurement workflows, entity lifecycle state transitions, and operational security.
    - Spring Boot owns the deterministic 5-dimension rolling 90-day supplier performance and risk engine (`SupplierPerformanceService` / `SupplierRiskEngineService`).
-   - PostgreSQL is exclusively owned and queried by Spring Boot; the ML service does **not** directly access PostgreSQL in Phase 7C.
+   - PostgreSQL is exclusively owned and queried by Spring Boot; the ML service does not directly access PostgreSQL.
 
 2. **ML Service Ownership:**
-   - FastAPI owns ML feature engineering, model lifecycle management, and probabilistic inference pipelines.
+   - FastAPI owns ML feature engineering, dataset validation, preprocessing pipelines, model lifecycle management, and probabilistic inference pipelines.
    - Disruption prediction ($P(\text{Disruption}) \in [0.0, 1.0]$) represents a distinct, forward-looking probabilistic signal.
-   - In Phase 7C, the service establishes the FastAPI scaffolding, configuration, candidate feature transformers, and model abstraction contracts, returning explicit `503 Model Not Available` responses rather than manufacturing fake predictions.
+   - In Phase 7D, the service provides deterministic dataset schemas, temporal feature extraction, dataset validation, temporal splitting, and Scikit-Learn preprocessing pipelines (`ColumnTransformer`).
+   - The prediction endpoint continues to return explicit `503 Model Not Available` responses until a model is trained and validated in Phase 7E.
 
 3. **Combined Decision Layer (Future):**
    - Downstream recommendation, alert, and simulation engines in Spring Boot will consume both the backward-looking deterministic risk score and forward-looking ML disruption probability to drive prescriptive actions.
