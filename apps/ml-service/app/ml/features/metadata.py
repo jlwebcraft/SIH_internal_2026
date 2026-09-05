@@ -122,9 +122,9 @@ FEATURE_CATALOG: List[FeatureMetadata] = [
         min_val=0.0,
         max_val=None,
         lookback_days=None,
-        status=FeatureStatus.AVAILABLE,
-        leakage_risk="Current inventory stock snapshot available at observation time T.",
-        description="Available warehouse inventory stock expressed in days of daily consumption.",
+        status=FeatureStatus.REQUIRES_EXTENSION,
+        leakage_risk="Historical warehouse inventory at observation date T cannot be reconstructed from mutable currentStock without historical inventory ledger/snapshot tables. Operational extraction returns None (requires extension); synthetic datasets simulate plausible historical coverage.",
+        description="Available warehouse inventory stock expressed in days of daily consumption (requires historical inventory extension for operational extraction).",
     ),
     FeatureMetadata(
         name="po_line_value",

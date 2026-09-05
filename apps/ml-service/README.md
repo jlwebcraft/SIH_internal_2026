@@ -86,16 +86,17 @@ All 10 features derived from the operational domain and Phase 7A design:
 | `hist_avg_delay_90d` | Float | $\ge 0.0$ days | $[T - 90\text{d}, T)$ | Available | Historical average delay in days for late deliveries over prior 90 days. |
 | `hist_fulfillment_rate_90d`| Float | `[0.0, 100.0]` % | $[T - 90\text{d}, T)$ | Available | Historical quantity fulfillment: $\min\left(100.0, \frac{\sum \text{receivedQuantity}}{\sum \text{orderedQuantity}} \times 100\right)$ over prior 90 days. |
 | `hist_disruptions_90d` | Integer | $\ge 0$ count | $[T - 90\text{d}, T)$ | Available | Count of historical delivery disruptions (delay $\ge 7$d or cancelled POs deduplicated by `purchaseOrderId`) over prior 90 days. |
-| `supplier_lead_time_contract`| Integer | $\ge 1$ days | Baseline | Available | Contractual supplier lead time in days. |
-| `material_criticality` | String | `HIGH`, `MEDIUM`, `LOW` | Current | Available | Material business criticality (encoded ordinally: HIGH=3, MED=2, LOW=1). |
-| `order_volume_ratio` | Float | $> 0.0$ ratio | Current | Available | Ratio of PO item quantity to supplier operational capacity ($\frac{\text{quantity}}{\text{capacity}}$). |
-| `inventory_coverage_days` | Float | $\ge 0.0$ days | Current | Available | Days of stock on hand ($\frac{\text{currentStock}}{\text{dailyConsumption}}$). |
-| `po_line_value` | Float | $\ge 0.0$ USD | Current | Available | Total monetary value of the PO item line ($\text{quantity} \times \text{unitPrice}$). |
-| `supplier_country` | String | ISO-2 code | Current | Available | Supplier country code (one-hot encoded, unknown category handled). |
+| `supplier_lead_time_contract`| Integer | $\ge 1$ days | Baseline | Available (Static) | Contractual supplier lead time in days (static contract master data). |
+| `material_criticality` | String | `HIGH`, `MEDIUM`, `LOW` | Static BOM | Available (Static) | Material business criticality (encoded ordinally: HIGH=3, MED=2, LOW=1). |
+| `order_volume_ratio` | Float | $> 0.0$ ratio | Current ($T$) | Available | Ratio of PO item quantity to supplier operational capacity ($\frac{\text{quantity}}{\text{capacity}}$). |
+| `inventory_coverage_days` | Float | $\ge 0.0$ days | At $T$ | **Requires Extension** | Days of stock on hand ($\frac{\text{historicalStockAtT}}{\text{dailyConsumption}}$). Requires historical inventory snapshot extension for operational DB extraction; simulated in synthetic datasets. |
+| `po_line_value` | Float | $\ge 0.0$ USD | Current ($T$) | Available | Total monetary value of the PO item line ($\text{quantity} \times \text{unitPrice}$). |
+| `supplier_country` | String | ISO-2 code | Profile | Available (Static) | Supplier country code (static profile master data; one-hot encoded, unknown category handled). |
 
 #### Raw vs. Transformed Feature Counts:
 * **Raw Tabular Features (10):** 8 numerical features + 2 categorical features (`material_criticality`, `supplier_country`).
 * **Transformed Model Feature Matrix (19):** 9 scaled numeric columns (8 continuous + 1 ordinal criticality) + 10 binary One-Hot columns for countries present in training data.
+* **Master Data Baseline Assumptions:** `Supplier.capacity`, `Supplier.country`, `Supplier.leadTimeDays`, and `Material.criticality` are treated as static master data attributes known at order placement time, not reconstructed time-series snapshots.
 
 ### 3.3. Deterministic Disruption Label Definition & Multi-Item Semantics
 

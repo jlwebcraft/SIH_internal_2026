@@ -46,7 +46,7 @@ def test_extractor_excludes_current_and_future_deliveries() -> None:
         historical_deliveries=historical_deliveries,
         historical_po_items=[],
         supplier_profile={"leadTimeDays": 14, "reliabilityScore": 80.0, "capacity": 1000.0, "country": "DE"},
-        material_profile={"criticality": "HIGH", "dailyConsumption": 20.0, "currentStock": 200.0},
+        material_profile={"criticality": "HIGH", "historicalDailyConsumptionAtT": 20.0, "historicalStockAtT": 200.0},
         current_po_item={"quantity": 100.0, "unitPrice": 50.0},
     )
 
@@ -62,6 +62,73 @@ def test_extractor_excludes_current_and_future_deliveries() -> None:
     assert features["order_volume_ratio"] == 0.10  # 100 / 1000
     assert features["inventory_coverage_days"] == 10.0  # 200 / 20
     assert features["po_line_value"] == 5000.0  # 100 * 50
+
+
+def test_inventory_coverage_tests_a_through_d() -> None:
+    extractor = TemporalFeatureExtractor(lookback_days=90)
+    obs_date = date(2025, 6, 1)
+
+    # Test A: Historical inventory snapshot exists at T -> correctly calculated
+    feat_a = extractor.extract_historical_features(
+        supplier_id=1,
+        observation_date=obs_date,
+        historical_deliveries=[],
+        historical_po_items=[],
+        supplier_profile={"capacity": 1000},
+        material_profile={"historicalStockAtT": 200.0, "historicalDailyConsumptionAtT": 20.0},
+        current_po_item={"quantity": 50, "unitPrice": 10},
+    )
+    assert feat_a["inventory_coverage_days"] == 10.0  # 200 / 20
+
+    # Test B: Historical inventory does NOT exist -> None (does NOT use today's currentStock)
+    feat_b = extractor.extract_historical_features(
+        supplier_id=1,
+        observation_date=obs_date,
+        historical_deliveries=[],
+        historical_po_items=[],
+        supplier_profile={"capacity": 1000},
+        material_profile={"currentStock": 5000.0, "dailyConsumption": 10.0},  # Today's live values
+        current_po_item={"quantity": 50, "unitPrice": 10},
+    )
+    assert feat_b["inventory_coverage_days"] is None
+
+    # Test C: Zero/negative daily consumption -> None (no fabricated 30.0 fallback)
+    feat_c = extractor.extract_historical_features(
+        supplier_id=1,
+        observation_date=obs_date,
+        historical_deliveries=[],
+        historical_po_items=[],
+        supplier_profile={"capacity": 1000},
+        material_profile={"historicalStockAtT": 200.0, "historicalDailyConsumptionAtT": 0.0},
+        current_po_item={"quantity": 50, "unitPrice": 10},
+    )
+    assert feat_c["inventory_coverage_days"] is None
+
+    # Test D: Current live inventory changes after observation T -> historical feature for T is unchanged
+    mat_state_1 = {"historicalStockAtT": 150.0, "historicalDailyConsumptionAtT": 15.0, "currentStock": 100.0}
+    feat_d1 = extractor.extract_historical_features(
+        supplier_id=1,
+        observation_date=obs_date,
+        historical_deliveries=[],
+        historical_po_items=[],
+        supplier_profile={"capacity": 1000},
+        material_profile=mat_state_1,
+        current_po_item={"quantity": 50, "unitPrice": 10},
+    )
+    # Mutate currentStock to simulate inventory receipt 6 months later
+    mat_state_2 = {"historicalStockAtT": 150.0, "historicalDailyConsumptionAtT": 15.0, "currentStock": 99999.0}
+    feat_d2 = extractor.extract_historical_features(
+        supplier_id=1,
+        observation_date=obs_date,
+        historical_deliveries=[],
+        historical_po_items=[],
+        supplier_profile={"capacity": 1000},
+        material_profile=mat_state_2,
+        current_po_item={"quantity": 50, "unitPrice": 10},
+    )
+    assert feat_d1["inventory_coverage_days"] == 10.0
+    assert feat_d2["inventory_coverage_days"] == 10.0
+    assert feat_d1["inventory_coverage_days"] == feat_d2["inventory_coverage_days"]
 
 
 def test_fulfillment_rate_cases_a_through_e() -> None:

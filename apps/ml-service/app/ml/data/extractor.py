@@ -120,25 +120,30 @@ class TemporalFeatureExtractor:
         disruptions += len(cancelled_po_ids)
 
         # 5. Extract item, material, and supplier profile features
+        # Static master data assumptions: Supplier capacity, lead time, country, and material criticality
         supplier_lead_time_contract = int(supplier_profile.get("leadTimeDays", 14))
         material_criticality = str(material_profile.get("criticality", "MEDIUM")).upper()
 
         current_qty = float(current_po_item.get("quantity", 100.0))
         unit_price = float(current_po_item.get("unitPrice", 10.0))
-        daily_consumption = float(material_profile.get("dailyConsumption", 10.0))
-        current_stock = float(material_profile.get("currentStock", 100.0))
 
-        # Order volume ratio = PO item quantity / Supplier capacity
+        # Order volume ratio = PO item quantity / Supplier capacity (static contract capacity)
         capacity = float(supplier_profile.get("capacity", 1000.0))
         if capacity <= 0:
             capacity = 1000.0
         order_volume_ratio = round(current_qty / capacity, 4)
 
-        # Inventory coverage days = current stock / daily consumption
-        if daily_consumption > 0:
-            inventory_coverage_days = round(current_stock / daily_consumption, 2)
+        # Inventory coverage days:
+        # Requires genuine historical inventory snapshot at observation date T.
+        # DO NOT fall back to today's mutable currentStock or fabricate a 30.0-day constant.
+        historical_stock = material_profile.get("historicalStockAtT")
+        historical_daily_consumption = material_profile.get("historicalDailyConsumptionAtT")
+
+        if historical_stock is not None and historical_daily_consumption is not None and float(historical_daily_consumption) > 0:
+            inventory_coverage_days = round(float(historical_stock) / float(historical_daily_consumption), 2)
         else:
-            inventory_coverage_days = 30.0
+            # Operational schema does not have historical inventory ledger; mark as unavailable (None)
+            inventory_coverage_days = None
 
         po_line_value = round(current_qty * unit_price, 2)
         supplier_country = str(supplier_profile.get("country", "US")).upper()
