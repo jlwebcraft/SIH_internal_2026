@@ -420,6 +420,45 @@ This operational API structure leaves room for later resource groups without cha
 
 Those resources should build on the same DTO, error response, validation, and relationship-summary conventions.
 
+## ML Disruption Predictions (Phase 7F)
+
+| Method | URI | Purpose | Request | Response | Success | Errors |
+| --- | --- | --- | --- | --- | --- | --- |
+| `POST` | `/api/predictions/disruption` | Request disruption probability prediction for procurement order context. | `DisruptionPredictionRequest` | `DisruptionPredictionResponse` | `200` | `400`, `502`, `503` |
+
+### Public Request Schema (`DisruptionPredictionRequest`):
+```json
+{
+  "histOtdr90d": 92.5,
+  "histAvgDelay90d": 2.4,
+  "histFulfillmentRate90d": 95.0,
+  "histDisruptions90d": 1,
+  "supplierLeadTimeContract": 14,
+  "materialCriticality": "HIGH",
+  "orderVolumeRatio": 1.8,
+  "inventoryCoverageDays": 12.0,
+  "poLineValue": 7500.0,
+  "supplierCountry": "India"
+}
+```
+
+### Public Response Schema (`DisruptionPredictionResponse`):
+```json
+{
+  "disruptionProbability": 0.4624,
+  "predictedLabel": 1,
+  "isDisrupted": true,
+  "riskTier": "MEDIUM",
+  "modelVersion": "disruption-baseline-v1",
+  "inferenceTimestamp": "2026-09-05T13:30:14.605988Z",
+  "confidence": null
+}
+```
+
+### Internal ML Integration:
+- Spring Boot transforms incoming camelCase DTOs into the internal Python FastAPI request (`POST /api/predict/disruption`), receives predictions from the trained model (`disruption-baseline-v1`), maps probabilities, and isolates callers from Python runtime details.
+- Upstream service outages or timeouts return standard `503 Service Unavailable` with clean error bodies matching `ApiErrorResponse`.
+
 ## Health Check
 
 | Method | URI | Purpose | Request | Response | Success | Errors |

@@ -83,10 +83,16 @@ PostgreSQL Database              FastAPI ML Service (apps/ml-service)
 2. **ML Service Ownership:**
    - FastAPI owns ML feature engineering, dataset validation, preprocessing pipelines, model lifecycle management, and probabilistic inference pipelines.
    - Disruption prediction ($P(\text{Disruption}) \in [0.0, 1.0]$) represents a distinct, forward-looking probabilistic signal.
-   - In Phase 7D, the service provides deterministic dataset schemas, temporal feature extraction, dataset validation, temporal splitting, and Scikit-Learn preprocessing pipelines (`ColumnTransformer`).
-   - The prediction endpoint continues to return explicit `503 Model Not Available` responses until a model is trained and validated in Phase 7E.
+   - In Phase 7E, baseline and comparison models were trained with zero temporal leakage, persisting `disruption-baseline-v1` (`.joblib` and metadata).
+   - In Phase 7F, Spring Boot connects to FastAPI via a typed, resilient HTTP client boundary (`MlPredictionClient` / `RestClient`).
 
-3. **Combined Decision Layer (Future):**
+3. **Spring Boot ML Integration Layer (Phase 7F):**
+   - **Client Abstraction:** `MlPredictionClient` interface with `HttpMlPredictionClient` implementation using modern Spring `RestClient`.
+   - **Configuration:** `ml.service.base-url` (`ML_SERVICE_BASE_URL`, default: `http://localhost:8000`), connect timeout (`ML_SERVICE_CONNECT_TIMEOUT_MS`, default: 5000ms), and read timeout (`ML_SERVICE_READ_TIMEOUT_MS`, default: 5000ms).
+   - **Error Handling & Isolation:** Spring Boot starts independently without hard dependency on FastAPI availability. Timeouts and service unavailabilities are gracefully mapped to `503 Service Unavailable`, client payload rejections to `400 Bad Request`, and upstream 5xx errors to `502 Bad Gateway`. Python stack traces and internal endpoints are never leaked to public consumers.
+   - **Security Boundary:** The ML service is an internal backend dependency not directly accessible to the frontend. Spring Boot serves as the secure, authenticated public gateway (`POST /api/predictions/disruption`). Service-to-service authentication (e.g. mTLS or internal API tokens) can be layered seamlessly into `RestClient` in future production deployment phases.
+
+4. **Combined Decision Layer (Future):**
    - Downstream recommendation, alert, and simulation engines in Spring Boot will consume both the backward-looking deterministic risk score and forward-looking ML disruption probability to drive prescriptive actions.
 
 ## Authentication And Firebase

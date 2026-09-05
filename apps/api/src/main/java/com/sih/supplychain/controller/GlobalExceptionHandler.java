@@ -72,6 +72,30 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.CONFLICT, "Request conflicts with existing data", request);
     }
 
+    @ExceptionHandler(com.sih.supplychain.exception.MlServiceTimeoutException.class)
+    ResponseEntity<ApiErrorResponse> handleMlServiceTimeout(
+            com.sih.supplychain.exception.MlServiceTimeoutException exception,
+            HttpServletRequest request
+    ) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(com.sih.supplychain.exception.MlServiceUnavailableException.class)
+    ResponseEntity<ApiErrorResponse> handleMlServiceUnavailable(
+            com.sih.supplychain.exception.MlServiceUnavailableException exception,
+            HttpServletRequest request
+    ) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(com.sih.supplychain.exception.MlServiceException.class)
+    ResponseEntity<ApiErrorResponse> handleMlServiceError(
+            com.sih.supplychain.exception.MlServiceException exception,
+            HttpServletRequest request
+    ) {
+        return error(HttpStatus.BAD_GATEWAY, exception.getMessage(), request);
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiErrorResponse> handleUnexpectedException(HttpServletRequest request) {
         return error(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request);

@@ -19,3 +19,9 @@ spring:
 
 server:
   port: 8080
+
+ml:
+  service:
+    base-url: ${ML_SERVICE_BASE_URL:http://localhost:8000}
+    connect-timeout-ms: ${ML_SERVICE_CONNECT_TIMEOUT_MS:5000}
+    read-timeout-ms: ${ML_SERVICE_READ_TIMEOUT_MS:5000}
