@@ -1,6 +1,6 @@
 # API Contracts
 
-The operational REST API contract is implemented for suppliers, materials, products, supplier-material relationships, product BOM entries, and inventory. OpenAPI configuration, authentication, and frontend integration are intentionally not implemented yet.
+The operational REST API contract is implemented for suppliers, materials, products, supplier-material relationships, product BOM entries, inventory, purchase orders, purchase order items, and deliveries. OpenAPI configuration, authentication, and frontend integration are intentionally not implemented yet.
 
 The API will use `/api/...` paths for the current SIH project scope. JPA entities must not be exposed directly from controllers.
 
@@ -12,6 +12,8 @@ The API will use `/api/...` paths for the current SIH project scope. JPA entitie
 - `ProductService`: create, get by ID, get by code, list all, update, delete when safe, deactivate.
 - `ProductMaterialService`: add material to product BOM, get BOM entry by ID, list product BOM, find products using material, update BOM entry, remove BOM entry.
 - `InventoryService`: create inventory, get by ID, list by material, get by material and warehouse, list all, update, adjust stock.
+- `PurchaseOrderService`: create purchase order with items atomically, get by ID, get by PO number, list all, list by supplier, list by status, update expected delivery date, place, cancel.
+- `DeliveryService`: create delivery, get by ID, list all, list by purchase order, update details, dispatch, mark in transit, mark delayed, mark delivered, cancel.
 
 REST controllers use DTOs, explicit mapping, and global exception handling above these services.
 
@@ -205,6 +207,94 @@ Validation expectations:
 - Request DTO: `warehouseLocation` `@NotBlank`; quantity fields `@PositiveOrZero`; `adjustment` `@NotNull`.
 - Service: material exists, duplicate material/warehouse rejected, stock quantities cannot become negative, adjustment cannot make `quantityOnHand` negative.
 
+## Purchase Orders
+
+| Method | URI | Purpose | Request | Response | Success | Errors |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/api/purchase-orders` | List purchase orders. Optional filters: `poNumber`, `supplierId`, `status`. | None | `List<PurchaseOrderResponse>` | `200` | `400`, `404`, `500` |
+| `GET` | `/api/purchase-orders/{id}` | Get purchase order by ID. | None | `PurchaseOrderResponse` | `200` | `404`, `500` |
+| `GET` | `/api/purchase-orders/by-number/{poNumber}` | Get purchase order by PO number. | None | `PurchaseOrderResponse` | `200` | `404`, `500` |
+| `POST` | `/api/purchase-orders` | Create a purchase order with one or more items. | `PurchaseOrderCreateRequest` | `PurchaseOrderResponse` | `201` | `400`, `404`, `409`, `500` |
+| `PUT` | `/api/purchase-orders/{id}` | Update allowed purchase order fields. | `PurchaseOrderUpdateRequest` | `PurchaseOrderResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/purchase-orders/{id}/place` | Move a draft purchase order to placed. | None | `PurchaseOrderResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/purchase-orders/{id}/cancel` | Cancel a draft or placed purchase order. | None | `PurchaseOrderResponse` | `200` | `400`, `404`, `500` |
+
+DTO design:
+
+- `PurchaseOrderCreateRequest`: `poNumber`, `supplierId`, `orderDate`, `expectedDeliveryDate`, `items`. Generated IDs, timestamps, status, and total amount are not accepted.
+- `PurchaseOrderItemRequest`: `materialId`, `quantity`, `unitPrice`, `expectedDate`.
+- `PurchaseOrderUpdateRequest`: `expectedDeliveryDate`. Supplier, PO number, items, status, and total amount are not changed through this request.
+- `PurchaseOrderResponse`: `id`, `poNumber`, supplier summary, `status`, `orderDate`, `expectedDeliveryDate`, `actualDeliveryDate`, server-calculated `totalAmount`, item responses, `createdAt`, `updatedAt`.
+- `PurchaseOrderItemResponse`: `id`, material summary, `quantity`, `unitPrice`, `expectedDate`, `receivedQuantity`, `status`, `lineAmount`.
+
+Validation expectations:
+
+- Request DTO: `poNumber` `@NotBlank`, `supplierId` and `materialId` `@Positive`, item list `@NotEmpty`, item `quantity` `@Positive`, item `unitPrice` `@PositiveOrZero`.
+- Service: supplier exists, PO number is unique, every material exists, expected dates are not before order date, item expected dates are not after the PO expected delivery date, total amount is calculated from `quantity * unitPrice`.
+- Purchase order creation with multiple items is transactional. If any item is invalid or references a missing material, no partial purchase order is left behind.
+
+Purchase order lifecycle:
+
+```text
+DRAFT -> PLACED
+DRAFT -> CANCELLED
+PLACED -> CANCELLED
+```
+
+`PARTIALLY_RECEIVED` and `RECEIVED` are reserved for the future inventory receipt workflow. They are recognized as business statuses but are not exposed as direct arbitrary status mutation endpoints in this phase.
+
+## Deliveries
+
+| Method | URI | Purpose | Request | Response | Success | Errors |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/api/deliveries` | List deliveries. Optional filter: `purchaseOrderId`. | None | `List<DeliveryResponse>` | `200` | `404`, `500` |
+| `GET` | `/api/deliveries/{id}` | Get delivery by ID. | None | `DeliveryResponse` | `200` | `404`, `500` |
+| `GET` | `/api/purchase-orders/{purchaseOrderId}/deliveries` | List deliveries for a purchase order. | None | `List<DeliveryResponse>` | `200` | `404`, `500` |
+| `POST` | `/api/purchase-orders/{purchaseOrderId}/deliveries` | Create a delivery for a purchase order. | `DeliveryCreateRequest` | `DeliveryResponse` | `201` | `400`, `404`, `500` |
+| `PUT` | `/api/deliveries/{id}` | Update delivery tracking/date/detail fields. | `DeliveryUpdateRequest` | `DeliveryResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/deliveries/{id}/dispatch` | Move pending delivery to dispatched. | None | `DeliveryResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/deliveries/{id}/in-transit` | Move dispatched or delayed delivery to in transit. | None | `DeliveryResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/deliveries/{id}/delay` | Mark dispatched or in-transit delivery as delayed. | None | `DeliveryResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/deliveries/{id}/deliver` | Mark dispatched, in-transit, or delayed delivery as delivered. | None | `DeliveryResponse` | `200` | `400`, `404`, `500` |
+| `PATCH` | `/api/deliveries/{id}/cancel` | Cancel a non-terminal delivery. | None | `DeliveryResponse` | `200` | `400`, `404`, `500` |
+
+DTO design:
+
+- `DeliveryCreateRequest`: `trackingNumber`, `dispatchDate`, `expectedArrivalDate`, `actualArrivalDate`, `delayDays`, `notes`. Status is not client-controlled on create and defaults to `PENDING`.
+- `DeliveryUpdateRequest`: same mutable delivery details as create. Purchase order and status are not changed through this request.
+- `DeliveryResponse`: `id`, purchase order summary, `trackingNumber`, `dispatchDate`, `expectedArrivalDate`, `actualArrivalDate`, `status`, `delayDays`, `notes`.
+
+Validation expectations:
+
+- Request DTO: `trackingNumber` and `notes` size limits, `delayDays` `@PositiveOrZero`.
+- Service: purchase order exists, delay days cannot be negative, expected or actual arrival cannot be before dispatch.
+- Tracking number is not treated as unique because the current database schema does not enforce uniqueness.
+
+Delivery lifecycle:
+
+```text
+PENDING -> DISPATCHED
+PENDING -> CANCELLED
+DISPATCHED -> IN_TRANSIT
+DISPATCHED -> DELAYED
+DISPATCHED -> DELIVERED
+DISPATCHED -> CANCELLED
+IN_TRANSIT -> DELAYED
+IN_TRANSIT -> DELIVERED
+IN_TRANSIT -> CANCELLED
+DELAYED -> IN_TRANSIT
+DELAYED -> DELIVERED
+DELAYED -> CANCELLED
+```
+
+`DELIVERED` and `CANCELLED` are terminal delivery states in this phase.
+
+Inventory receipt limitation:
+
+- Creating a delivery does not update inventory.
+- Marking a delivery delivered does not update inventory yet.
+- The current delivery table does not track per-material delivered quantities, so automatic receipt processing would risk double-counting. Inventory receipt should be implemented in a later refinement with explicit received quantities and idempotent receipt tracking.
+
 ## Validation Strategy
 
 DTO validation should handle structural request problems:
@@ -222,9 +312,12 @@ Service validation must continue to own business invariants:
 - Duplicate supplier-material relationships
 - Duplicate product BOM entries
 - Duplicate material/warehouse inventory records
+- Duplicate purchase order numbers
 - Missing referenced supplier, material, or product
 - Safe deletion when dependent operational records exist
 - Negative stock prevention during inventory adjustment
+- Purchase order and delivery lifecycle transitions
+- Server-side purchase order total calculation
 - Business-level percentage ranges
 
 ## Pagination, Sorting, And Filtering

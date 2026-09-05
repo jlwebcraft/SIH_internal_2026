@@ -66,4 +66,56 @@ public class Delivery {
     public String getTrackingNumber() {
         return trackingNumber;
     }
+
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
+    }
+
+    public LocalDate getDispatchDate() {
+        return dispatchDate;
+    }
+
+    public void setDispatchDate(LocalDate dispatchDate) {
+        this.dispatchDate = dispatchDate;
+    }
+
+    public LocalDate getExpectedArrivalDate() {
+        return expectedArrivalDate;
+    }
+
+    public void setExpectedArrivalDate(LocalDate expectedArrivalDate) {
+        this.expectedArrivalDate = expectedArrivalDate;
+    }
+
+    public LocalDate getActualArrivalDate() {
+        return actualArrivalDate;
+    }
+
+    public void setActualArrivalDate(LocalDate actualArrivalDate) {
+        this.actualArrivalDate = actualArrivalDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Integer getDelayDays() {
+        return delayDays;
+    }
+
+    public void setDelayDays(Integer delayDays) {
+        this.delayDays = delayDays;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 }

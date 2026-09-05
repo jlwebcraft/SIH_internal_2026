@@ -1,14 +1,21 @@
 package com.sih.supplychain.mapper;
 
+import com.sih.supplychain.domain.Delivery;
 import com.sih.supplychain.domain.Inventory;
 import com.sih.supplychain.domain.Material;
 import com.sih.supplychain.domain.Product;
 import com.sih.supplychain.domain.ProductMaterial;
+import com.sih.supplychain.domain.PurchaseOrder;
+import com.sih.supplychain.domain.PurchaseOrderItem;
 import com.sih.supplychain.domain.Supplier;
 import com.sih.supplychain.domain.SupplierMaterial;
 import com.sih.supplychain.dto.common.MaterialSummaryResponse;
 import com.sih.supplychain.dto.common.ProductSummaryResponse;
+import com.sih.supplychain.dto.common.PurchaseOrderSummaryResponse;
 import com.sih.supplychain.dto.common.SupplierSummaryResponse;
+import com.sih.supplychain.dto.delivery.DeliveryCreateRequest;
+import com.sih.supplychain.dto.delivery.DeliveryResponse;
+import com.sih.supplychain.dto.delivery.DeliveryUpdateRequest;
 import com.sih.supplychain.dto.inventory.InventoryCreateRequest;
 import com.sih.supplychain.dto.inventory.InventoryResponse;
 import com.sih.supplychain.dto.inventory.InventoryUpdateRequest;
@@ -21,12 +28,18 @@ import com.sih.supplychain.dto.product.ProductUpdateRequest;
 import com.sih.supplychain.dto.productmaterial.ProductMaterialCreateRequest;
 import com.sih.supplychain.dto.productmaterial.ProductMaterialResponse;
 import com.sih.supplychain.dto.productmaterial.ProductMaterialUpdateRequest;
+import com.sih.supplychain.dto.purchaseorder.PurchaseOrderItemResponse;
+import com.sih.supplychain.dto.purchaseorder.PurchaseOrderResponse;
 import com.sih.supplychain.dto.supplier.SupplierCreateRequest;
 import com.sih.supplychain.dto.supplier.SupplierResponse;
 import com.sih.supplychain.dto.supplier.SupplierUpdateRequest;
 import com.sih.supplychain.dto.suppliermaterial.SupplierMaterialCreateRequest;
 import com.sih.supplychain.dto.suppliermaterial.SupplierMaterialResponse;
 import com.sih.supplychain.dto.suppliermaterial.SupplierMaterialUpdateRequest;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
 
 public final class OperationalMapper {
 
@@ -203,6 +216,64 @@ public final class OperationalMapper {
         );
     }
 
+    public static PurchaseOrderResponse toPurchaseOrderResponse(PurchaseOrder purchaseOrder) {
+        return new PurchaseOrderResponse(
+                purchaseOrder.getId(),
+                purchaseOrder.getPoNumber(),
+                toSupplierSummary(purchaseOrder.getSupplier()),
+                purchaseOrder.getStatus(),
+                purchaseOrder.getOrderDate(),
+                purchaseOrder.getExpectedDeliveryDate(),
+                purchaseOrder.getActualDeliveryDate(),
+                purchaseOrder.getTotalAmount(),
+                purchaseOrder.getItems().stream()
+                        .sorted(Comparator.comparing(PurchaseOrderItem::getId, Comparator.nullsLast(Long::compareTo)))
+                        .map(OperationalMapper::toPurchaseOrderItemResponse)
+                        .toList(),
+                purchaseOrder.getCreatedAt(),
+                purchaseOrder.getUpdatedAt()
+        );
+    }
+
+    public static PurchaseOrderItemResponse toPurchaseOrderItemResponse(PurchaseOrderItem item) {
+        return new PurchaseOrderItemResponse(
+                item.getId(),
+                toMaterialSummary(item.getMaterial()),
+                item.getQuantity(),
+                item.getUnitPrice(),
+                item.getExpectedDate(),
+                item.getReceivedQuantity(),
+                item.getStatus(),
+                calculateLineAmount(item)
+        );
+    }
+
+    public static Delivery toDelivery(DeliveryCreateRequest request) {
+        Delivery delivery = new Delivery(null, request.trackingNumber());
+        applyDeliveryFields(delivery, request);
+        return delivery;
+    }
+
+    public static Delivery toDelivery(DeliveryUpdateRequest request) {
+        Delivery delivery = new Delivery(null, request.trackingNumber());
+        applyDeliveryFields(delivery, request);
+        return delivery;
+    }
+
+    public static DeliveryResponse toDeliveryResponse(Delivery delivery) {
+        return new DeliveryResponse(
+                delivery.getId(),
+                toPurchaseOrderSummary(delivery.getPurchaseOrder()),
+                delivery.getTrackingNumber(),
+                delivery.getDispatchDate(),
+                delivery.getExpectedArrivalDate(),
+                delivery.getActualArrivalDate(),
+                delivery.getStatus(),
+                delivery.getDelayDays(),
+                delivery.getNotes()
+        );
+    }
+
     private static SupplierSummaryResponse toSupplierSummary(Supplier supplier) {
         return new SupplierSummaryResponse(supplier.getId(), supplier.getCode(), supplier.getName());
     }
@@ -213,6 +284,14 @@ public final class OperationalMapper {
 
     private static ProductSummaryResponse toProductSummary(Product product) {
         return new ProductSummaryResponse(product.getId(), product.getCode(), product.getName());
+    }
+
+    private static PurchaseOrderSummaryResponse toPurchaseOrderSummary(PurchaseOrder purchaseOrder) {
+        return new PurchaseOrderSummaryResponse(
+                purchaseOrder.getId(),
+                purchaseOrder.getPoNumber(),
+                purchaseOrder.getStatus()
+        );
     }
 
     private static void applySupplierFields(Supplier supplier, SupplierCreateRequest request) {
@@ -333,5 +412,30 @@ public final class OperationalMapper {
         inventory.setQuantityIncoming(request.quantityIncoming());
         inventory.setSafetyStock(request.safetyStock());
         inventory.setReorderPoint(request.reorderPoint());
+    }
+
+    private static void applyDeliveryFields(Delivery delivery, DeliveryCreateRequest request) {
+        delivery.setDispatchDate(request.dispatchDate());
+        delivery.setExpectedArrivalDate(request.expectedArrivalDate());
+        delivery.setActualArrivalDate(request.actualArrivalDate());
+        delivery.setDelayDays(request.delayDays());
+        delivery.setNotes(request.notes());
+    }
+
+    private static void applyDeliveryFields(Delivery delivery, DeliveryUpdateRequest request) {
+        delivery.setDispatchDate(request.dispatchDate());
+        delivery.setExpectedArrivalDate(request.expectedArrivalDate());
+        delivery.setActualArrivalDate(request.actualArrivalDate());
+        delivery.setDelayDays(request.delayDays());
+        delivery.setNotes(request.notes());
+    }
+
+    private static BigDecimal calculateLineAmount(PurchaseOrderItem item) {
+        if (item.getQuantity() == null || item.getUnitPrice() == null) {
+            return null;
+        }
+        return item.getQuantity()
+                .multiply(item.getUnitPrice())
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }
