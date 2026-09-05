@@ -93,20 +93,31 @@ class TemporalFeatureExtractor:
             hist_fulfillment_rate_90d = 100.0
 
         # 4. Compute Historical Disruptions strictly before observation_date
+        # Deduplicate PO cancellations by purchaseOrderId so multi-item POs do not inflate disruption count
         disruptions = 0
         for d, arrival in completed_deliveries:
             exp_arrival = d.get("expectedArrivalDate")
             if isinstance(exp_arrival, str):
                 exp_arrival = date.fromisoformat(exp_arrival)
+            elif isinstance(exp_arrival, datetime):
+                exp_arrival = exp_arrival.date()
+
             if exp_arrival and (arrival - exp_arrival).days >= self.disruption_delay_threshold_days:
                 disruptions += 1
 
+        cancelled_po_ids = set()
         for it in historical_po_items:
             po_date = it.get("orderDate")
             if isinstance(po_date, str):
                 po_date = date.fromisoformat(po_date)
-            if window_start <= po_date < observation_date and it.get("poStatus") == "CANCELLED":
-                disruptions += 1
+            elif isinstance(po_date, datetime):
+                po_date = po_date.date()
+
+            if po_date is not None and window_start <= po_date < observation_date and it.get("poStatus") == "CANCELLED":
+                po_id = it.get("purchaseOrderId", it.get("poId", id(it)))
+                cancelled_po_ids.add(po_id)
+
+        disruptions += len(cancelled_po_ids)
 
         # 5. Extract item, material, and supplier profile features
         supplier_lead_time_contract = int(supplier_profile.get("leadTimeDays", 14))
@@ -117,12 +128,16 @@ class TemporalFeatureExtractor:
         daily_consumption = float(material_profile.get("dailyConsumption", 10.0))
         current_stock = float(material_profile.get("currentStock", 100.0))
 
+        # Order volume ratio = PO item quantity / Supplier capacity
+        capacity = float(supplier_profile.get("capacity", 1000.0))
+        if capacity <= 0:
+            capacity = 1000.0
+        order_volume_ratio = round(current_qty / capacity, 4)
+
+        # Inventory coverage days = current stock / daily consumption
         if daily_consumption > 0:
-            order_volume_ratio = round(current_qty / daily_consumption, 4)
             inventory_coverage_days = round(current_stock / daily_consumption, 2)
         else:
-            capacity = float(supplier_profile.get("capacity", 1000.0))
-            order_volume_ratio = round(current_qty / max(1.0, capacity), 4)
             inventory_coverage_days = 30.0
 
         po_line_value = round(current_qty * unit_price, 2)

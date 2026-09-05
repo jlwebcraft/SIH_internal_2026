@@ -84,16 +84,20 @@ All 10 features derived from the operational domain and Phase 7A design:
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `hist_otdr_90d` | Float | `[0.0, 100.0]` % | $[T - 90\text{d}, T)$ | Available | Historical on-time delivery rate over prior 90 days. |
 | `hist_avg_delay_90d` | Float | $\ge 0.0$ days | $[T - 90\text{d}, T)$ | Available | Historical average delay in days for late deliveries over prior 90 days. |
-| `hist_fulfillment_rate_90d`| Float | `[0.0, 100.0]` % | $[T - 90\text{d}, T)$ | Available | Historical delivery quantity vs ordered quantity over prior 90 days. |
-| `hist_disruptions_90d` | Integer | $\ge 0$ count | $[T - 90\text{d}, T)$ | Available | Count of historical delivery disruptions over prior 90 days. |
+| `hist_fulfillment_rate_90d`| Float | `[0.0, 100.0]` % | $[T - 90\text{d}, T)$ | Available | Historical quantity fulfillment: $\min\left(100.0, \frac{\sum \text{receivedQuantity}}{\sum \text{orderedQuantity}} \times 100\right)$ over prior 90 days. |
+| `hist_disruptions_90d` | Integer | $\ge 0$ count | $[T - 90\text{d}, T)$ | Available | Count of historical delivery disruptions (delay $\ge 7$d or cancelled POs deduplicated by `purchaseOrderId`) over prior 90 days. |
 | `supplier_lead_time_contract`| Integer | $\ge 1$ days | Baseline | Available | Contractual supplier lead time in days. |
 | `material_criticality` | String | `HIGH`, `MEDIUM`, `LOW` | Current | Available | Material business criticality (encoded ordinally: HIGH=3, MED=2, LOW=1). |
-| `order_volume_ratio` | Float | $> 0.0$ ratio | Current | Available | Ratio of PO item quantity to supplier operational capacity. |
+| `order_volume_ratio` | Float | $> 0.0$ ratio | Current | Available | Ratio of PO item quantity to supplier operational capacity ($\frac{\text{quantity}}{\text{capacity}}$). |
 | `inventory_coverage_days` | Float | $\ge 0.0$ days | Current | Available | Days of stock on hand ($\frac{\text{currentStock}}{\text{dailyConsumption}}$). |
-| `po_line_value` | Float | $\ge 0.0$ USD | Current | Available | Total monetary value of the PO item line. |
+| `po_line_value` | Float | $\ge 0.0$ USD | Current | Available | Total monetary value of the PO item line ($\text{quantity} \times \text{unitPrice}$). |
 | `supplier_country` | String | ISO-2 code | Current | Available | Supplier country code (one-hot encoded, unknown category handled). |
 
-### 3.3. Deterministic Disruption Label Definition
+#### Raw vs. Transformed Feature Counts:
+* **Raw Tabular Features (10):** 8 numerical features + 2 categorical features (`material_criticality`, `supplier_country`).
+* **Transformed Model Feature Matrix (19):** 9 scaled numeric columns (8 continuous + 1 ordinal criticality) + 10 binary One-Hot columns for countries present in training data.
+
+### 3.3. Deterministic Disruption Label Definition & Multi-Item Semantics
 
 The binary target label `is_disrupted` ($y \in \{0, 1\}$) represents whether the upcoming procurement event experienced a disruption **after** observation timestamp $T$:
 
@@ -102,7 +106,7 @@ y = 1 \iff (\text{Delivery Delay} \ge 7\text{ days}) \lor (\text{Post-Placement 
 $$
 
 - Routine minor delays ($< 7$ days) are classified as non-disruptions ($y = 0$).
-- Label evaluation strictly uses outcomes occurring on or after $T$.
+- **Multi-Item PO Observation Semantics:** Each PO line item is evaluated for disruption based on its specific shipment/cancellation outcome. In historical aggregation, supplier-level disruption counts (`hist_disruptions_90d`) are strictly deduplicated by `purchaseOrderId` so that a cancelled multi-item PO is counted as a single business disruption event rather than artificially inflated.
 
 ### 3.4. Temporal Leakage Rules & Protections
 
@@ -129,8 +133,10 @@ Enforcing: $\max(T_{\text{train}}) \le \min(T_{\text{val}}) \le \max(T_{\text{va
 
 ## 4. Synthetic Dataset Generator & CLI
 
-### 4.1. Developer Disclaimer
+### 4.1. Developer Disclaimer & Prevalence Rationale
 > **IMPORTANT:** Synthetic datasets are generated strictly for development, testing, and pipeline validation. Synthetic data does NOT represent real-world supplier behavior and must NOT be cited as evidence of production machine-learning model accuracy.
+
+**Prevalence Design Rationale:** The synthetic generator produces an ~21% disruption prevalence using a logistic probability distribution with stochastic noise $\mathcal{N}(0, 0.45^2)$. This mirrors real-world supply-chain minority disruption baselines (~10–25%) while providing sufficient positive minority instances for stable cross-validation, precision-recall evaluation, and ROC-AUC curve fitting in Phase 7E.
 
 ### 4.2. CLI Usage
 
